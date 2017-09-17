@@ -62,9 +62,16 @@ function handleConnection(socket) {
         if (err) {
           res.send(500);
         }
-        console.log(data);
-        res.writeHead('Content-Type', mimeTypes.lookup('jpg'));
-        res.ok(data.toString());
+        res.socket.write('HTTP/1.1 200 OK\r\n');
+        res.socket.write('Content-Type: image/jpeg\r\n');
+        res.socket.write('Content-Length: ' + data.byteLength + '\r\n');
+        res.socket.write('\r\n');
+        res.socket.write(data);
+        res.socket.end('\r\n');
+        // console.log(data);
+        // res.writeHead('Content-Type', mimeTypes.lookup('jpeg'));
+        // res.writeHead('Content-Length', data.byteLength);
+        // res.ok(data.toString());
       })
     });
 

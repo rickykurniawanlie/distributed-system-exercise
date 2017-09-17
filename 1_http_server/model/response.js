@@ -76,7 +76,9 @@ Response.prototype.end = function (str) {
     if (!this.headerExists('Content-Type')) {
       this.writeHead('Content-Type', 'text/plain');
     }
-    this.writeHead('Content-Length', body.length);
+    if (!this.headerExists('Content-Length')) {
+      this.writeHead('Content-Length', body.length);
+    }
 
     for (let key in this.headers) {
       sock.write(key + ': ' + this.headers[key] + CRLF);
