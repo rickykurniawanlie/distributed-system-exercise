@@ -4,9 +4,19 @@
 var Request = require('../model/request.js');
 
 const CRLF = '\r\n';
-const HTTP_METHOD = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'];
+const HTTP_METHOD = require('methods');
 
 var Parser = (function () {
+  function parseQuery (queryString) {
+    var params = [];
+    var queries = queryString.split('&');
+    for (var i = 0; i < queries.length; i++) {
+      var entry = queries[i].split('=');
+      params[entry[0]] = entry[1];
+    }
+    return params;
+  }
+
   function parseRequestLine(reqLine) {
     var arr = reqLine.split(' ');
 
@@ -14,13 +24,21 @@ var Parser = (function () {
       throw new Error('Invalid Request Line');
     }
 
-    if (!HTTP_METHOD.includes(arr[0])) {
+    if (!HTTP_METHOD.includes(arr[0].toLowerCase())) {
       throw new Error('Unknown HTTP Method');
+    }
+
+    var uriComponents = arr[1].split('?');
+    var uri = uriComponents[0];
+    var params = [];
+    if (uriComponents.length > 1) {
+      params = parseQuery(uriComponents[1]);
     }
 
     return {
       method: arr[0],
-      uri: arr[1],
+      uri: uri,
+      params: params,
       version: arr[2]
     }
   }
@@ -37,14 +55,14 @@ var Parser = (function () {
     }
   }
 
-  function parse(data) {
-    var lines = data.split(CRLF);
+  function parse(req) {
+    var lines = req.raw.split(CRLF);
 
     if (lines.length < 1) {
       throw new Error('500');
     }
 
-    var requestLine = parseRequestLine(lines[0]);
+    req.setRequestLine(parseRequestLine(lines[0]));
 
     var i = 1;
     var headers = {};
@@ -53,19 +71,20 @@ var Parser = (function () {
       headers[header.key] = header.value;
       i = i + 1;
     }
+    req.setHeaders(headers);
 
     i = i + 1; // Skip header-body-separator
-    // TODO: Handle body parsing.
-    var body = 'TODO: Ricky';
-    return new Request(
-        requestLine,
-        headers,
-        body
-    );
+
+    if (req.getHeader('Content-Type') === 'application/x-www-form-urlencoded') {
+      req.params = parseQuery(lines[i].replace('+', ' '));
+    }
+    var body = lines[i];
+    req.setBody(body);
   }
 
   return {
     parse: parse
   };
 })();
+
 module.exports = Parser;

@@ -1,8 +1,19 @@
-var Request = function (requestLine, headers, body) {
+var Request = function (raw) {
+  this.raw = raw;
+}
+
+Request.prototype.setRequestLine = function (requestLine) {
   this.method = requestLine.method;
   this.uri = requestLine.uri;
   this.version = requestLine.version;
+  this.params = requestLine.params;
+}
+
+Request.prototype.setHeaders = function (headers) {
   this.headers = headers;
+}
+
+Request.prototype.setBody = function (body) {
   this.body = body;
 }
 

@@ -1,9 +1,14 @@
 const CRLF = '\r\n';
 
+var fs = require('fs');
 var net = require('net');
-var http = require('./lib/http-parser');
+var mimeTypes = require('mime-types');
+var httpRequestParser = require('./lib/http-request-parser');
 var Middleware = require('./lib/middleware');
-var HttpStatus = require('http-status-codes');
+var HttpStatus = require('http-status');
+var Response = require('./model/response');
+var Request = require('./model/request');
+var merge = require('merge');
 
 var server = net.createServer(function (socket) {
   socket.setEncoding('utf-8');
@@ -22,70 +27,95 @@ function handleConnection(socket) {
   socket.once('close', onConnClose);
   socket.on('error', onConnError);
 
-  function onConnData(d) {
-    console.log(d.split(CRLF));
-    var req;
-    var res = {
-      version: 'HTTP/1.1',
-      status: HttpStatus.OK,
-      headers: [
-        'X-Powered-By: Ricky',
-        'Connection: close'
-      ],
-      body: ''
-    };
-    try {
-      req = http.parse(d);
-    } catch (err) {
-      res.status = HttpStatus.BAD_REQUEST;
-      buildResponse(res);
+  function onConnData(rawData) {
+    var response = new Response();
+    response.socket = socket;
+    response.writeHead('Connection', 'close');
+    var request = new Request(rawData);
+    var middleware = new Middleware(request, response);
+
+    var init = require('./middleware/init');
+    var httpLimitation = require('./middleware/httpLimitation');
+    var Router = require('./middleware/router');
+    var router = Router.Router;
+
+    middleware.use(init);
+    middleware.use(httpLimitation);
+    middleware.use(Router.middleware);
+
+    router.get('/', function (req, res) {
+      res.found('/hello-world');
+    });
+
+    router.get('/style', function (req, res) {
+      fs.readFile('./public/style.css', (err, data) => {
+        if (err) {
+          res.send(500);
+        }
+        res.writeHead('Content-Type', mimeTypes.lookup('css'));
+        res.ok(data);
+      })
+    });
+
+    router.get('/background', function (req, res) {
+      fs.readFile('./public/background.jpg', (err, data) => {
+        if (err) {
+          res.send(500);
+        }
+        console.log(data);
+        res.writeHead('Content-Type', mimeTypes.lookup('jpg'));
+        res.ok(data.toString());
+      })
+    });
+
+    router.get('/hello-world', function (req, res) {
+      fs.readFile('./public/hello-world.html', (err, data) => {
+        if (err) {
+          res.send(500);
+        }
+        res.writeHead('Content-Type', mimeTypes.lookup('html'));
+        res.ok(data.toString().replace('__HELLO__', 'World'));
+      });
+    });
+
+    router.post('/hello-world', function (req, res) {
+      if (req.getHeader('Content-Type') !== 'application/x-www-form-urlencoded') {
+        res.error(HttpStatus.BAD_REQUEST);
+      }
+
+      fs.readFile('./public/hello-world.html', (err, data) => {
+        if (err) {
+          res.send(500);
+        }
+        res.writeHead('Content-Type', mimeTypes.lookup('html'));
+        res.ok(data.toString().replace('__HELLO__', req.params.name));
+      });
+    });
+
+    router.get('/info', function (req, res) {
+      res.writeHead('Content-Type', mimeTypes.lookup('text/plain'), {
+        'charset' : 'UTF-8'
+      });
+
+      var type = req.params['type'];
+      switch (type) {
+        case 'time':
+          res.ok(new Date().getTime());
+          break;
+        case 'random':
+          res.ok(Math.floor( Math.random() * 100000000 ));
+          break;
+        default:
+          res.ok('No data');
+      }
       return;
-    }
-
-    var middleware = new Middleware();
-
-    middleware.use(function (next) {
-      var self = this;
-      if (req.version !== 'HTTP/1.0' && req.version !== 'HTTP/1.1') {
-        res.status = HttpStatus.BAD_REQUEST;
-        buildResponse(res);
-        return;
-      }
-
-      if (req.method !== 'GET' && req.version !== 'POST') {
-        res.status = HttpStatus.NOT_IMPLEMENTED;
-        buildResponse(res);
-        return;
-      }
-
-      next();
-    });
-    middleware.use(function (next) {
-      var self = this;
-      console.log('2');
-      next();
-      console.log('22');
     });
 
-    middleware.go(function() {
-      if (req.uri === '') {
-        // Do something
-      }
-      buildResponse(res);
+    router.error(function (req, res) {
+      res.notFound('Sorry, resource you are requested are not available... yet!');
     });
 
-    // console.log('connection data from %s: %j', remoteAddress, d);
-    // conn.write(d.toString());
-  }
-
-  function buildResponse(res) {
-    socket.write('HTTP/1.1 ' + res.status + ' ' + HttpStatus.getStatusText(res.status) + CRLF);
-    for (var i = 0; i < res.headers.length; i++) {
-      socket.write(res.headers[i] + CRLF);
-    }
-    socket.write(CRLF);
-    socket.write(res.body);
-    socket.end();
+    middleware.go(function () {});
   }
 
   function onConnClose() {
