@@ -15,7 +15,12 @@ var server = net.createServer(function (socket) {
 });
 server.on('connection', handleConnection);
 
-server.listen(9000, '127.0.0.1', function() {
+var env = {};
+env.nodeId = Math.floor(Math.random() * 1000000);
+env.host = process.argv[2] || 'localhost';
+env.port = process.argv[3] || 9000;
+
+server.listen(env.port, env.host, function() {
   console.log('server listening to %j', server.address());
 });
 
@@ -116,6 +121,11 @@ function handleConnection(socket) {
           res.ok('No data');
       }
       return;
+    });
+
+    router.get('/whoami', function (req, res) {
+      res.write(JSON.stringify(env));
+      res.end();
     });
 
     router.error(function (req, res) {
