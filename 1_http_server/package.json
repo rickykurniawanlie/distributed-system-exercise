@@ -19,7 +19,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node server.js localhost 3000",
-    "prod": "concurrently \"node server.js localhost 3000\" \"node server.js localhost 3001\""
+    "prod": "concurrently \"node server.js localhost 3000\" \"node server.js localhost 3001\"",
+    "update": "git pull; npm install"
   },
   "author": "RK",
   "license": "GPL-3.0"
