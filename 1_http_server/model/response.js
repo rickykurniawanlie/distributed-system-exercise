@@ -48,6 +48,12 @@ Response.prototype.ok = function (message) {
   this.send(HttpStatus.OK, message);
 }
 
+Response.prototype.json = function (message) {
+  this.writeHead('Content-Type', 'application/json');
+  this.write(JSON.stringify(message));
+  this.end();
+}
+
 Response.prototype.error = function (code, message) {
   this.status = code;
   this.writeHead('Content-Type', 'application/json');

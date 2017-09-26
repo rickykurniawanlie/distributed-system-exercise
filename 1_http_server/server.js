@@ -1,6 +1,5 @@
 const CRLF = '\r\n';
 
-var fs = require('fs');
 var net = require('net');
 var mimeTypes = require('mime-types');
 var httpRequestParser = require('./lib/http-request-parser');
@@ -9,6 +8,7 @@ var HttpStatus = require('http-status');
 var Response = require('./model/response');
 var Request = require('./model/request');
 var merge = require('merge');
+var fs = require('fs');
 
 var server = net.createServer(function (socket) {
   socket.setEncoding('utf-8');
@@ -127,16 +127,31 @@ function handleConnection(socket) {
      * PR 2
      */
     router.post('/api/hello', function (req, res) {
-      var externalService = new net.Socket();
-      socket.connect(17088, '172.17.0.70', function () {
+      var timeSvcSocket = new net.Socket();
+      timeSvcSocket.connect(17088, '172.17.0.70', function () {
         console.log('[plus_one] Client: Connected to server');
       });
 
-      socket.on('data', function (data) {
-        data = JSON.parse(data);
-        console.log('Response from server: %s', data.response);
-        console.log(req.input);
-        socket.end();
+      timeSvcSocket.on('data', function (rawData) {
+        timeSvcSocket.end();
+        data = JSON.parse(rawData);
+
+        var dbRaw = fs.readFileSync('./storage/db.json', 'utf8');
+        var db = JSON.parse(dbRaw) || {};
+        if (!db[req.input.request]) {
+          db[req.input.request] = 1;
+        } else {
+          db[req.input.request]++;
+        }
+        fs.writeFileSync('./storage/db.json', JSON.stringify(db), 'utf8');
+
+        var response = {
+          "response": data.state + ', ' + req.input.request,
+          "currentvisit": data.datetime,
+          "count": db[req.input.request],
+          "apiversion": 2
+        };
+        res.json(response);
       });
     });
 
