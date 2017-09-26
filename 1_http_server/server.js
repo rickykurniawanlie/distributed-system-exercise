@@ -126,10 +126,22 @@ function handleConnection(socket) {
     /**
      * PR 2
      */
+    router.get('/api/hello', function(req, res) {
+      res.error(HttpStatus.METHOD_NOT_ALLOWED, 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.');
+    });
+
     router.post('/api/hello', function (req, res) {
       var timeSvcSocket = new net.Socket();
+      if (!req.input.request) {
+        res.error(HttpStatus.BAD_REQUEST, '\'request\' is a required property');
+      }
+
       timeSvcSocket.connect(17088, '172.17.0.70', function () {
         console.log('[plus_one] Client: Connected to server');
+      });
+
+      timeSvcSocket.setTimeout(1000, function () {
+        res.error(HttpStatus.SERVICE_UNAVAILABLE, 'External service is under maintenance. Please try again later');
       });
 
       timeSvcSocket.on('data', function (rawData) {
@@ -151,7 +163,7 @@ function handleConnection(socket) {
           "count": db[req.input.request],
           "apiversion": 2
         };
-        res.json(response);
+        res.json(HttpStatus.OK, response);
       });
     });
 
