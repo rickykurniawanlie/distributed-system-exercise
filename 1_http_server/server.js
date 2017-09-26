@@ -7,7 +7,6 @@ var Middleware = require('./lib/middleware');
 var HttpStatus = require('http-status');
 var Response = require('./model/response');
 var Request = require('./model/request');
-var merge = require('merge');
 var fs = require('fs');
 
 var server = net.createServer(function (socket) {
