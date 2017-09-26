@@ -1,0 +1,27 @@
+curl -H "Content-Type: application/json" -X POST -d '{"request": "ardhi"}' http://localhost:80/api/hello
+  {
+    "apiversion": 1,
+    "count": 1,
+    "currentvisit": "2017-09-22T06:26:32.522839Z",
+    "response": "Good Morning, ardhi"
+  }
+
+curl -H "Content-Type: application/json" -X POST -d '{"req": "ardhi"}' http://localhost:80/api/hello
+  {
+    "detail": "'request' is a required property",
+    "status": 400,
+    "title": "Bad Request"
+  }
+
+curl localhost/api/plus_one/1
+  {
+    "apiversion": 1,
+    "plusoneret": 2
+  }
+
+curl localhost:80/api/plus_one/satu
+  {
+    "detail": "The requested URL was not found on the server.  If you entered the URL manually please check your spelling and try again.",
+    "status": 404,
+    "title": "Not Found"
+  }

@@ -140,7 +140,13 @@ function handleConnection(socket) {
       });
 
       timeSvcSocket.setTimeout(1000, function () {
+        timeSvcSocket.end();
         res.error(HttpStatus.SERVICE_UNAVAILABLE, 'External service is under maintenance. Please try again later');
+      });
+
+      timeSvcSocket.on('error', function (err) {
+        console.log('Connection error supressed');
+        console.log(err);
       });
 
       timeSvcSocket.on('data', function (rawData) {

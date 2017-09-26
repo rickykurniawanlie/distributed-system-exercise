@@ -1,0 +1,19 @@
+ssh root@152.118.31.2 -p 12037
+
+curl -v localhost
+  Should show 302 status with 'Location: /hello-world'
+
+curl -v localhost/hello-world
+  Should return a HTML file with __HELLO__ replaced with 'WORLD'
+
+curl -X POST \
+  http://localhost/hello-world \
+  -H 'content-type: application/x-www-form-urlencoded'
+
+  Should return a HTML file with __HELLO__ replaced with '<name>'
+
+curl -v localhost/info?type=time
+  Should return current time
+
+curl -v localhost/whoami
+  Should return node id
