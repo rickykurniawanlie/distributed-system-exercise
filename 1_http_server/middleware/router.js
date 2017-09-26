@@ -1,3 +1,5 @@
+var RouteParser = require('route-parser');
+
 var Route = function (method, uri, handler) {
   this.method = method;
   this.uri = uri;
@@ -25,8 +27,11 @@ var Router = (function Router () {
     var found = false;
     for (let i = 0; i < routes.length; i++) {
       let route = routes[i];
-      if (req.method === route.method && req.uri === route.uri) {
+      var routeParser = new RouteParser(route.uri);
+      var parseResult = routeParser.match(req.uri);
+      if (req.method === route.method && parseResult) {
         found = true;
+        req.route = parseResult;
         route.handler(req, res);
         next();
         break;

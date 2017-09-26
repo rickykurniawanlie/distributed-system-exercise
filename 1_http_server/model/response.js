@@ -49,7 +49,15 @@ Response.prototype.ok = function (message) {
 }
 
 Response.prototype.error = function (code, message) {
-  this.send(code, message);
+  this.status = code;
+  this.writeHead('Content-Type', 'application/json');
+  var response = {
+    'detail': message,
+    'status': code,
+    'title': HttpStatus[this.status]
+  };
+  this.write(JSON.stringify(response));
+  this.end();
 }
 
 Response.prototype.notFound = function (message) {
@@ -60,7 +68,7 @@ Response.prototype.found = function (location) {
   this.status = HttpStatus.FOUND;
   this.writeHead('Location', location);
   this.end();
-} 
+}
 
 Response.prototype.end = function (str) {
   if (typeof str === 'string') {
@@ -70,9 +78,9 @@ Response.prototype.end = function (str) {
   if (this.socket) {
     var sock = this.socket;
     sock.write('HTTP/1.1 ' + this.status + ' ' + HttpStatus[this.status] + CRLF);
-    
+
     var body = this.body.join('\n');
-    
+
     if (!this.headerExists('Content-Type')) {
       this.writeHead('Content-Type', 'text/plain');
     }

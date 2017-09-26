@@ -72,12 +72,7 @@ function handleConnection(socket) {
         res.socket.write('Content-Length: ' + data.byteLength + '\r\n');
         res.socket.write('\r\n');
         res.socket.write(data);
-        res.socket.end('\r\n');
-        // console.log(data);
-        // res.writeHead('Content-Type', mimeTypes.lookup('jpeg'));
-        // res.writeHead('Content-Length', data.byteLength);
-        // res.ok(data.toString());
-      })
+        res.socket.end('\r\n');      })
     });
 
     router.get('/hello-world', function (req, res) {
@@ -100,7 +95,7 @@ function handleConnection(socket) {
           res.send(500);
         }
         res.writeHead('Content-Type', mimeTypes.lookup('html'));
-        res.ok(data.toString().replace('__HELLO__', req.params.name));
+        res.ok(data.toString().replace('__HELLO__', req.input.name));
       });
     });
 
@@ -109,7 +104,7 @@ function handleConnection(socket) {
         'charset' : 'UTF-8'
       });
 
-      var type = req.params['type'];
+      var type = req.input.type;
       switch (type) {
         case 'time':
           res.ok(new Date().getTime());
@@ -128,8 +123,56 @@ function handleConnection(socket) {
       res.end();
     });
 
+    /**
+     * PR 2
+     */
+    router.post('/api/hello', function (req, res) {
+      var externalService = new net.Socket();
+      socket.connect(17088, '172.17.0.70', function () {
+        console.log('[plus_one] Client: Connected to server');
+      });
+
+      socket.on('data', function (data) {
+        data = JSON.parse(data);
+        console.log('Response from server: %s', data.response);
+        console.log(req.input);
+        socket.end();
+      });
+    });
+
+    router.get('/api/plus_one/:num', function (req, res) {
+      if (isNaN(req.route.num) || parseInt(req.route.num) < 0) {
+        res.error(HttpStatus.NOT_FOUND, 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.');
+      }
+
+      var response = {
+        'apiversion': 2,
+        'plusoneret': parseInt(req.route.num) + 1
+      };
+      res.writeHead('Content-Type', mimeTypes.lookup('json'));
+      res.write(JSON.stringify(response));
+      res.end();
+    });
+
+    router.get('/api/spesifikasi.yaml', function (req, res) {
+      fs.readFile('./public/spesifikasi.yaml', (err, data) => {
+        if (err) {
+          res.send(404);
+          return;
+        }
+        res.writeHead('Content-Type', mimeTypes.lookup('yaml'));
+        res.ok(data.toString());
+      });
+    });
+
     router.error(function (req, res) {
-      res.notFound('Sorry, resource you are requested are not available... yet!');
+      res.writeHead('Content-Type', mimeTypes.lookup('json'));
+      var response = {
+        'detail': 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.',
+        'status': 404,
+        'title': 'Not Found'
+      };
+      res.notFound(JSON.stringify(response));
     });
 
     middleware.go(function () {});

@@ -8,13 +8,13 @@ const HTTP_METHOD = require('methods');
 
 var Parser = (function () {
   function parseQuery (queryString) {
-    var params = [];
+    var input = {};
     var queries = queryString.split('&');
     for (var i = 0; i < queries.length; i++) {
       var entry = queries[i].split('=');
-      params[entry[0]] = entry[1];
+      input[entry[0]] = entry[1];
     }
-    return params;
+    return input;
   }
 
   function parseRequestLine(reqLine) {
@@ -30,15 +30,15 @@ var Parser = (function () {
 
     var uriComponents = arr[1].split('?');
     var uri = uriComponents[0];
-    var params = [];
+    var input = [];
     if (uriComponents.length > 1) {
-      params = parseQuery(uriComponents[1]);
+      input = parseQuery(uriComponents[1]);
     }
 
     return {
       method: arr[0],
       uri: uri,
-      params: params,
+      input: input,
       version: arr[2]
     }
   }
@@ -76,7 +76,10 @@ var Parser = (function () {
     i = i + 1; // Skip header-body-separator
 
     if (req.getHeader('Content-Type') === 'application/x-www-form-urlencoded') {
-      req.params = parseQuery(lines[i].replace('+', ' '));
+      req.input = parseQuery(lines[i].replace('+', ' '));
+    } else if (req.getHeader('Content-Type') === 'application/json') {
+      // console.log('[DEBUG] CType json: ' + lines[i]);
+      req.input = JSON.parse(lines[i]);
     }
     var body = lines[i];
     req.setBody(body);

@@ -6,7 +6,7 @@ Request.prototype.setRequestLine = function (requestLine) {
   this.method = requestLine.method;
   this.uri = requestLine.uri;
   this.version = requestLine.version;
-  this.params = requestLine.params;
+  this.input = requestLine.input;
 }
 
 Request.prototype.setHeaders = function (headers) {
