@@ -8,6 +8,7 @@ var HttpStatus = require('http-status');
 var Response = require('./model/response');
 var Request = require('./model/request');
 var fs = require('fs');
+var http = require('http');
 
 var server = net.createServer(function (socket) {
   socket.setEncoding('utf-8');
@@ -130,46 +131,49 @@ function handleConnection(socket) {
     });
 
     router.post('/api/hello', function (req, res) {
-      var timeSvcSocket = new net.Socket();
       if (!req.input.request) {
         res.error(HttpStatus.BAD_REQUEST, '\'request\' is a required property');
       }
 
-      timeSvcSocket.connect(17088, '172.17.0.70', function () {
-        console.log('[plus_one] Client: Connected to server');
-      });
+      var options = {
+        host: '172.17.0.70',
+        port: 17088,
+        path: '/'
+      };
 
-      timeSvcSocket.setTimeout(1000, function () {
-        timeSvcSocket.end();
-        res.error(HttpStatus.SERVICE_UNAVAILABLE, 'External service is under maintenance. Please try again later');
-      });
+      callback = function(response) {
+        var str = '';
 
-      timeSvcSocket.on('error', function (err) {
-        console.log('Connection error supressed');
-        console.log(err);
-      });
+        response.on('error', function () {
+          res.error(HttpStatus.SERVICE_UNAVAILABLE, 'External service is under maintenance. Please try again later');
+        });
 
-      timeSvcSocket.on('data', function (rawData) {
-        timeSvcSocket.end();
-        data = JSON.parse(rawData);
+        response.on('data', function (chunk) {
+          str += chunk;
+        });
 
-        var dbRaw = fs.readFileSync('./storage/db.json', 'utf8');
-        var db = JSON.parse(dbRaw) || {};
-        if (!db[req.input.request]) {
-          db[req.input.request] = 1;
-        } else {
-          db[req.input.request]++;
-        }
-        fs.writeFileSync('./storage/db.json', JSON.stringify(db), 'utf8');
+        response.on('end', function () {
+          var data = JSON.parse(str);
 
-        var response = {
-          "response": data.state + ', ' + req.input.request,
-          "currentvisit": data.datetime,
-          "count": db[req.input.request],
-          "apiversion": 2
-        };
-        res.json(HttpStatus.OK, response);
-      });
+          var dbRaw = fs.readFileSync('./storage/db.json', 'utf8');
+          var db = JSON.parse(dbRaw) || {};
+          if (!db[req.input.request]) {
+            db[req.input.request] = 1;
+          } else {
+            db[req.input.request]++;
+          }
+          fs.writeFileSync('./storage/db.json', JSON.stringify(db), 'utf8');
+
+          var response = {
+            "response": 'Good ' + data.state + ', ' + req.input.request,
+            "currentvisit": data.datetime,
+            "count": db[req.input.request],
+            "apiversion": 2
+          };
+          res.json(HttpStatus.OK, response);
+        });
+      }
+      http.request(options, callback).end();
     });
 
     router.get('/api/plus_one/:num', function (req, res) {
