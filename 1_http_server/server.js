@@ -17,6 +17,7 @@ server.on('connection', handleConnection);
 
 var env = {};
 env.nodeId = Math.floor(Math.random() * 1000000);
+env.public_ip = process.env.CURRENT_IP || '127.0.0.1';
 env.host = process.env.NODE_HOST|| 'localhost';
 env.port = process.argv[2] || 9000;
 
@@ -197,7 +198,7 @@ function handleConnection(socket) {
           return;
         }
         res.writeHead('Content-Type', mimeTypes.lookup('yaml'));
-        res.ok(data.toString().replace('ALAMAT_BINDING_ANDA', env.host).replace('PORT_ANDA', 80));
+        res.ok(data.toString().replace('ALAMAT_BINDING_ANDA', env.public_ip).replace('PORT_ANDA', 80));
       });
     });
 
