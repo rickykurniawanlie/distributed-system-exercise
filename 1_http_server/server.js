@@ -197,7 +197,7 @@ function handleConnection(socket) {
           return;
         }
         res.writeHead('Content-Type', mimeTypes.lookup('yaml'));
-        res.ok(data.toString());
+        res.ok(data.toString().replace('ALAMAT_BINDING_ANDA', env.host).replace('PORT_ANDA', 80));
       });
     });
 
