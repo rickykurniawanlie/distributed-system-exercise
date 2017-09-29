@@ -17,8 +17,8 @@ server.on('connection', handleConnection);
 
 var env = {};
 env.nodeId = Math.floor(Math.random() * 1000000);
-env.host = process.argv[2] || 'localhost';
-env.port = process.argv[3] || 9000;
+env.host = process.env.NODE_HOST|| 'localhost';
+env.port = process.argv[2] || 9000;
 
 server.listen(env.port, env.host, function() {
   console.log('server listening to %j', server.address());

@@ -16,8 +16,8 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node server.js localhost 3000",
-    "prod": "concurrently \"node server.js localhost 3000\" \"node server.js localhost 3001\"",
+    "dev": "node server.js 3000",
+    "prod": "concurrently \"node server.js 3000\" \"node server.js 3001\"",
     "update": "git pull; npm install"
   },
   "author": "RK",
