@@ -40,7 +40,7 @@ class ClusterCachedAccessor {
   async getMembers() {
     let result = this.cache.get(this.CACHE_PREFIX);
     if (!result) {
-      result = await updateCache();
+      result = await this.updateCache();
     }
     return result;
   }

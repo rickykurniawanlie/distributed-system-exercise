@@ -33,6 +33,7 @@ module.exports = {
     });
   },
   getSaldo: function (req, res) {
+    console.log('enter get saldo');
     if (!req.quorum || req.quorum !== 'ok') {
       return res.json({ 'nilai_saldo': ERROR_CODES['QUORUM']});
     }
