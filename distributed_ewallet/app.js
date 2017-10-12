@@ -9,6 +9,12 @@ var bodyParser = require('body-parser');
  * Common components
  */
 var memoryCache = require('memory-cache');  // default instance
+var mongoose = require('mongoose');
+try {
+  mongoose.connect('mongodb://localhost/test');
+} catch (err) {
+  console.log(err);
+}
 
 /**
  * Accessors
