@@ -15,8 +15,9 @@ class ClusterCachedAccessor {
   }
 
   async getServiceRepository() {
-    let result = await asyncFs.readFile(path.resolve('storage', 'serviceRepositoryMock.json'), 'utf-8');
-    return JSON.parse(result);
+    // let result = await asyncFs.readFile(path.resolve('storage', 'serviceRepositoryMock.json'), 'utf-8');
+    let result = await axios.get('http://152.118.31.2/list.php');
+    return JSON.parse(result.data);
   }
 
   async updateCache() {
