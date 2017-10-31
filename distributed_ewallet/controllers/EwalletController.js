@@ -1,15 +1,7 @@
-let User = require('../models/user');
+let ERROR_CODES = require('../const/errorConstant');
 
-const ERROR_CODES = {
-  'SUCCESS': 1,
-  'UNREGISTERED': -1,
-  'QUORUM': -2,
-  'DATABASE': -4,
-  'UNDEFINED': -99
-};
-
-module.exports = {
-  register: function (req, res) {
+module.exports = function (ewalletService, clusterService) { return {
+  register: async function (req, res) {
     if (!req.quorum || req.quorum !== 'ok') {
       return res.json({ "status_register": ERROR_CODES['QUORUM']});
     }
@@ -19,21 +11,9 @@ module.exports = {
       return res.json({ "status_register": ERROR_CODES['UNDEFINED'] });
     }
 
-    let newUser = new User({
-      _id: req.body.user_id,
-      name: req.body.nama,
-      balance: 0
-    });
-    newUser.save(function (err) {
-      if (err) {
-        res.json({ "status_register": ERROR_CODES['DATABASE']})
-      } else {
-        res.json({ "status_register": ERROR_CODES['SUCCESS'] });
-      }
-    });
+    await ewalletService.registerUser(req, res);
   },
-  getSaldo: function (req, res) {
-    console.log('enter get saldo');
+  getSaldo: async function (req, res) {
     if (!req.quorum || req.quorum !== 'ok') {
       return res.json({ 'nilai_saldo': ERROR_CODES['QUORUM']});
     }
@@ -42,17 +22,36 @@ module.exports = {
       return res.json({ 'nilai_saldo': ERROR_CODES['UNDEFINED']});
     }
 
-    User.find({ _id: req.body.user_id}, function (err, users) {
-      if (users.length === 0) {
-        return res.json({ 'nilai_saldo': ERROR_CODES['UNREGISTERED']});
-      }
-      return res.json({ 'nilai_saldo': users[0].balance });
-    });
+    await ewalletService.getLocalBalance(req, res);
   },
-  getTotalSaldo: function (req, res) {
-    res.sendStatus(501);
+  getTotalSaldo: async function (req, res) {
+    if (!req.quorum || req.quorum !== 'ok') {
+      return res.json({ "nilai_saldo": ERROR_CODES['QUORUM']});
+    }
+
+    var user_id = req.body.user_id + "";   // convert to string
+    var callback = function (balance) {
+      res.json({
+        'nilai_saldo': balance
+      });
+    };
+
+    if (user_id === process.env.APP_ID) {
+      await ewalletService.getHostGlobalBalance(callback);
+    } else {
+      await ewalletService.getGlobalBalance(user_id, callback);
+    }
   },
-  transfer: function (req, res) {
-    res.sendStatus(501);
+  transfer: async function (req, res) {
+    if (!req.quorum || req.quorum !== 'ok') {
+      return res.json({ "status_register": ERROR_CODES['QUORUM']});
+    }
+
+    let isOk = req.body.user_id && req.body.nilai;
+    if (!isOk) {
+      return res.json({ "status_transfer": ERROR_CODES['UNDEFINED']});
+    }
+
+    await ewalletService.transfer(req, res);
   }
-}
+}}

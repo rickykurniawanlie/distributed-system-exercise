@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>eWallet Web UI</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="row">
+      <dov class="col col-sm-6 mr-auto ml-auto">
+        <div class="container">
+          <h1> Distributed eWallet System </h1>
+          <p> <em> Home based for NPM 1406565133 </em> </p>
+
+          <ul class="nav nav-pills" style="margin-bottom: 2rem">
+            <li class="nav-item">
+              <a class="nav-link" href="/webui/ping">Ping</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/webui/register">Register</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/webui/transfer">Transfer</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/webui/saldo">Saldo Lokal</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/webui/totalSaldo">Total Saldo</a>
+            </li>
+          </ul>
+          <h1> {{ message }} </h1>
+          <h2> {{ error.status }} </h2>
+          <pre> {{ error.stack }} </pre>
+        </dov>
+      </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+  </body>
+</html>

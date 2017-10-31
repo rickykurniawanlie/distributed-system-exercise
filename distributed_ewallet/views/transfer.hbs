@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>eWallet Web UI</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="row">
+      <dov class="col col-md-6 mr-auto ml-auto">
+        <div class="container">
+          <h1> Distributed eWallet System </h1>
+          <p> <em> You are on CLI connected to: {{ env.APP_URL }} by {{ env.APP_ID }}</em> </p>
+
+          <ul class="nav nav-pills" style="margin-bottom: 2rem">
+            <li class="nav-item">
+              <a class="nav-link" href="/webui/ping">Ping</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/webui/register">Register</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="/webui/transfer">Transfer</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/webui/saldo">Saldo Lokal</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/webui/totalSaldo">Total Saldo</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/webui/misc">Misc</a>
+            </li>
+          </ul>
+
+          <div class="card" id="transfer-card">
+            <div class="card-body">
+              <h2> Transfer <small> [Spesifik] </small> </h2>
+              <p> Layanan khusus server {{ env.APP_ID }} ({{ env.APP_URL }})
+                untuk mengirimkan uang milik suatu <code> ID Pengguna yang Ingin Ditransfer Uangnya </code>
+                sejumlah <code> Besar Saldo </code> tertentu
+                ke server milik user dengan ID <code> User ID Server Tujuan </code>.
+              </p>
+              <form id="transfer-form" onsubmit="return false">
+                <div class="form-group">
+                  <label>ID Pengguna yang Ingin Ditransfer Uangnya</label>
+                  <input type="text" class="form-control" name="user_id" placeholder="Enter User ID">
+                </div>
+                <div class="form-group">
+                  <label>Besar Saldo</label>
+                  <input type="text" class="form-control" name="amount" placeholder="Enter User ID">
+                </div>
+                <div class="row">
+                  <div class="col col-12">
+                    <div class="form-group">
+                      <label> User ID Server Tujuan </label>
+                      <input type="text" class="form-control" name="destUserId" placeholder="Enter user ID">
+                    </div>
+                    <button id="submit-uid-btn" type="submit" class="btn btn-primary submit-btn">Submit</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <hr />
+
+          <div class="card">
+            <div class="card-body">
+              <h4 class="card-title">Result</h4>
+              <pre id="result-box" style="background-color:#0a0a0a;color:#fff;white-space: pre-wrap">{{result}}</pre>
+            </div>
+          </div>
+        </dov>
+      </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+
+        var sendRequest = function (user_id, amount, destUserId) {
+          $.ajax({
+            url: '{{ env.APP_URL }}/api/transfer',
+            type: 'POST',
+            dataType: 'json',
+            data: {user_id: user_id, amount: amount, destUserId: destUserId},
+            timeout: 1000
+          })
+          .done(function(result) {
+            $('#result-box').html(JSON.stringify(result, null, 2));
+          })
+          .fail(function(error) {
+            $('#result-box').html(JSON.stringify(error, null, 2));
+          });
+        };
+
+        $('#submit-uid-btn').on('click', function () {
+          $('#result-box').html('');
+          console.log('click');
+
+          var destUserId = $('input[name="destUserId"]').val();
+          var user_id = $('input[name="user_id"]').val();
+          var amount = $('input[name="amount"]').val();
+          sendRequest(destUserId, amount, destUserId);
+        })
+      });
+    </script>
+  </body>
+</html>

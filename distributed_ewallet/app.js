@@ -1,17 +1,20 @@
 var express = require('express');
+var basicAuth = require('express-basic-auth')
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var dotenv = require('dotenv').config()
 
 /**
  * Common components
  */
 var memoryCache = require('memory-cache');  // default instance
 var mongoose = require('mongoose');
+mongoose.Promise = require('bluebird');
 try {
-  mongoose.connect('mongodb://localhost/test');
+  mongoose.connect(process.env.MONGO_STRING);
 } catch (err) {
   console.log(err);
 }
@@ -27,12 +30,18 @@ var clusterCachedAccessor = new ClusterCachedAccessor(memoryCache);
  */
 var ClusterService = require('./services/ClusterService');
 var clusterService = new ClusterService(clusterCachedAccessor);
+var EwalletService = require('./services/EwalletService');
+var ewalletService = new EwalletService(clusterService);
+var UserService = require('./services/UserService');
+var userService = new UserService();
 
 var index = require('./routes/index');
 var users = require('./routes/users');
+var webui = require('./routes/webui');
 
 var infraController = require('./controllers/InfraController');
-var ewalletController = require('./controllers/EwalletController');
+var ewalletController = require('./controllers/EwalletController')(ewalletService, clusterService);
+var apiController = require('./controllers/ApiController')(clusterService, userService);
 
 var quorumMiddleware = require('./middlewares/QuorumMiddleware')(clusterService);
 
@@ -40,9 +49,9 @@ var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'hbs');
 
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.APP_PORT || 3000);
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -54,6 +63,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
+app.use('/webui', webui);
 
 app.post('/ewallet/ping', quorumMiddleware.any, infraController.ping);
 app.post('/ewallet/set-healthy', quorumMiddleware.any, infraController.setHealthy);
@@ -64,9 +74,17 @@ app.post('/ewallet/transfer', quorumMiddleware.majority, ewalletController.trans
 app.post('/ewallet/getSaldo', quorumMiddleware.majority, ewalletController.getSaldo);
 app.post('/ewallet/getTotalSaldo', quorumMiddleware.full, ewalletController.getTotalSaldo);
 
-app.get('/test', async function (req, res){
-  var result = await clusterService.getMembers();
-  res.send(result);
+app.post('/api/transfer', apiController.transfer);
+app.get('/api/find/:user_id', apiController.getIpFromId);
+
+// Sorry for the hack
+app.get('/webui/misc', async function(req, res, next) {
+  console.log(await clusterService.getMembers());
+  res.render('misc', {
+    env: process.env,
+    users: await userService.getUsers(),
+    clusterMembers: await clusterService.getMembers()
+  });
 });
 
 // catch 404 and forward to error handler
