@@ -95,15 +95,17 @@
             url: '{{ env.APP_URL }}' + '/api/find/' + user_id,
             type: 'GET',
             dataType: 'json',
-            timeout: 1000,
+            timeout: 2000,
           })
           .done(function(result) {
-            console.log(result.ip);
+            if (!result) {
+              $('#result-box').html("User ID yang dicari tidak ada :(");
+              return;
+            }
             callback(result.ip);
           })
           .fail(function(error) {
-            alert('Error :(');
-            console.log(error);
+            $('#result-box').html("User ID yang dicari tidak ada :(");
           });
         };
 
@@ -113,7 +115,7 @@
             type: 'POST',
             dataType: 'json',
             data: {user_id: user_id},
-            timeout: 1000
+            timeout: 2000
           })
           .done(function(result) {
             $('#result-box').html(JSON.stringify(result, null, 2));

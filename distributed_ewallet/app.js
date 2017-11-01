@@ -75,6 +75,7 @@ app.post('/ewallet/getSaldo', quorumMiddleware.majority, ewalletController.getSa
 app.post('/ewallet/getTotalSaldo', quorumMiddleware.full, ewalletController.getTotalSaldo);
 
 app.post('/api/transfer', apiController.transfer);
+app.post('/api/ping', apiController.ping);
 app.get('/api/find/:user_id', apiController.getIpFromId);
 
 // Sorry for the hack

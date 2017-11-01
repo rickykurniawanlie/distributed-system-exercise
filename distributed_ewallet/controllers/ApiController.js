@@ -2,6 +2,20 @@ let axios = require('axios');
 let ERROR_CODES = require('../const/errorConstant');
 
 module.exports = function (clusterService, userService) { return {
+  ping: async function (req, res) {
+    var ipToCheck = req.body.ipToCheck;
+
+    try {
+      var response = await axios({
+        method: 'post',
+        url: 'http://' + ipToCheck + '/ewallet/ping',
+        timeout: 1000
+      });
+      res.json(response.data);
+    } catch (e) {
+      res.json({ error: 'Failed to connect to ' + ipToCheck });
+    }
+  },
   transfer: async function(req, res) {
     var user_id = req.body.user_id;
     var amount = req.body.amount;

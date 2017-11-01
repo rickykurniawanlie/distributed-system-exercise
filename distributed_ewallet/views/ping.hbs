@@ -88,25 +88,27 @@
             url: '{{ env.APP_URL }}' + '/api/find/' + user_id,
             type: 'GET',
             dataType: 'json',
-            timeout: 1000,
+            timeout: 2000,
           })
           .done(function(result) {
-            console.log(result.ip);
+            if (!result) {
+              $('#result-box').html("User ID yang dicari tidak ada :(");
+              return;
+            }
             callback(result.ip);
           })
           .fail(function(error) {
-            alert('Error :(');
-            console.log(error);
+            $('#result-box').html("User ID yang dicari tidak ada :(");
           });
         };
 
         var sendRequest = function (url) {
           $.ajax({
-            url: 'http://' + url + '/ewallet/ping',
+            url: '{{ env.APP_URL }}/api/ping',
             type: 'POST',
             dataType: 'json',
-            data: {},
-            timeout: 1000
+            data: { ipToCheck: url },
+            timeout: 2000
           })
           .done(function(result) {
             $('#result-box').html(JSON.stringify(result, null, 2));
