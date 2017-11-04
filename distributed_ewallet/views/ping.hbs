@@ -107,7 +107,7 @@
             url: '{{ env.APP_URL }}/api/ping',
             type: 'POST',
             dataType: 'json',
-            data: { ipToCheck: url },
+            data: { destUrl: url },
             timeout: 2000
           })
           .done(function(result) {

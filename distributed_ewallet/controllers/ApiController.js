@@ -3,17 +3,34 @@ let ERROR_CODES = require('../const/errorConstant');
 
 module.exports = function (clusterService, userService) { return {
   ping: async function (req, res) {
-    var ipToCheck = req.body.ipToCheck;
+    var destUrl = req.body.destUrl;
 
     try {
       var response = await axios({
         method: 'post',
-        url: 'http://' + ipToCheck + '/ewallet/ping',
+        url: 'http://' + destUrl + '/ewallet/ping',
         timeout: 1000
       });
       res.json(response.data);
     } catch (e) {
-      res.json({ error: 'Failed to connect to ' + ipToCheck });
+      res.json({ error: 'Failed to connect to ' + destUrl });
+    }
+  },
+  register: async function (req, res) {
+    console.log(req.body);
+    var destUrl = req.body.destUrl;
+    var user_id = req.body.user_id;
+    var nama = req.body.nama;
+
+    try {
+      var response = await axios({
+        method: 'post',
+        url: 'http://' + destUrl + '/ewallet/ping',
+        timeout: 1000
+      });
+      res.json(response.data);
+    } catch (e) {
+      res.json({ error: 'Failed to connect to ' + destUrl });
     }
   },
   transfer: async function(req, res) {
