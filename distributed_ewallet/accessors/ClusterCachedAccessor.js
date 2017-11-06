@@ -22,26 +22,37 @@ class ClusterCachedAccessor {
 
   async getServiceRepository() {
     var svcRepoList;
-    if (process.env.SERVICE_REPO_SRC === 'url') {
-      let result = await axios.get(process.env.SERVICE_REPO_URL);
-      svcRepoList = JSON.parse(result.data);
-    } else if (process.env.SERVICE_REPO_SRC === 'file') {
-      let result = await asyncFs.readFile(path.resolve('storage', process.env.SERVICE_REPO_URL), 'utf-8');
-      svcRepoList = JSON.parse(result);
+    try {
+      if (process.env.SERVICE_REPO_SRC === 'url') {
+        let result = await axios({
+          method: 'get',
+          url: process.env.SERVICE_REPO_URL,
+          timeout: 1000
+        });
+        svcRepoList = JSON.parse(result.data);
+      } else if (process.env.SERVICE_REPO_SRC === 'file') {
+        let result = await asyncFs.readFile(path.resolve('storage', process.env.SERVICE_REPO_URL), 'utf-8');
+        svcRepoList = JSON.parse(result);
+      }
+      let idIpMap = {};
+      for (var i = 0; i < svcRepoList.length; i++) {
+        idIpMap[svcRepoList[i]['npm']] = svcRepoList[i]['ip'];
+      }
+      this.cache.put(this.CACHE_SVC_REPO, idIpMap, this.CACHE_EXP);
+
+      return idIpMap;
+    } catch (e) {
+      return {};
     }
 
-    let idIpMap = {};
-    for (var i = 0; i < svcRepoList.length; i++) {
-      idIpMap[svcRepoList[i]['npm']] = svcRepoList[i]['ip'];
-    }
-    this.cache.put(this.CACHE_SVC_REPO, idIpMap, this.CACHE_EXP);
-
-    return idIpMap;
   }
 
-  async updateCache() {
+  async updateMemberCache() {
     let clusterMembers = await this.getClusterMember();
     let idIpMap = await this.getServiceRepository();
+
+    console.log(clusterMembers);
+    console.log(idIpMap);
 
     let result = {};
     for (var i = 0; i < clusterMembers.length; i++) {
@@ -49,13 +60,17 @@ class ClusterCachedAccessor {
     }
     this.cache.put(this.CACHE_PREFIX, result, this.CACHE_EXP);
 
-    return result;
+    if (process.env.CLUSTER_MEMBER === 'repo')
+      return this.cache.get(this.CACHE_SVC_REPO);
+    else
+      return this.cache.get(this.CACHE_PREFIX);
   }
 
   async getMembers() {
     let result = this.cache.get(this.CACHE_PREFIX);
+    console.log(result);
     if (!result) {
-      result = await this.updateCache();
+      result = await this.updateMemberCache();
     }
     return result;
   }
