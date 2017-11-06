@@ -29,7 +29,7 @@ class ClusterCachedAccessor {
           url: process.env.SERVICE_REPO_URL,
           timeout: 1000
         });
-        svcRepoList = JSON.parse(result.data);
+        svcRepoList = result.data;
       } else if (process.env.SERVICE_REPO_SRC === 'file') {
         let result = await asyncFs.readFile(path.resolve('storage', process.env.SERVICE_REPO_URL), 'utf-8');
         svcRepoList = JSON.parse(result);
@@ -68,9 +68,9 @@ class ClusterCachedAccessor {
 
   async getMembers() {
     let result = this.cache.get(this.CACHE_PREFIX);
-    console.log(result);
     if (!result) {
       result = await this.updateMemberCache();
+      console.log(result);
     }
     return result;
   }
