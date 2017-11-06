@@ -48,22 +48,21 @@ class ClusterCachedAccessor {
   }
 
   async updateMemberCache() {
-    let clusterMembers = await this.getClusterMember();
     let idIpMap = await this.getServiceRepository();
 
-    console.log(clusterMembers);
-    console.log(idIpMap);
+    if (process.env.CLUSTER_MEMBER === 'repo') {
+      this.cache.put(this.CACHE_PREFIX, idIpMap, this.CACHE_EXP);
+      return idIpMap;
+    }
+
+    let clusterMembers = await this.getClusterMember();
 
     let result = {};
     for (var i = 0; i < clusterMembers.length; i++) {
       result[clusterMembers[i]] = idIpMap[clusterMembers[i]];
     }
     this.cache.put(this.CACHE_PREFIX, result, this.CACHE_EXP);
-
-    if (process.env.CLUSTER_MEMBER === 'repo')
-      return this.cache.get(this.CACHE_SVC_REPO);
-    else
-      return this.cache.get(this.CACHE_PREFIX);
+    return result;
   }
 
   async getMembers() {
