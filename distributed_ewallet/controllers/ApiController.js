@@ -94,7 +94,7 @@ module.exports = function (clusterService, userService) { return {
       }
 
       // Check amount that is going to be sent
-      if (amount < 0 || amount > TIMEOUT000000) {
+      if (amount < 0 || amount > 1000000000) {
         return res.json({ 'status_transfer': ERROR_CODES['LIMIT_EXCEEDED'] });
       }
 
