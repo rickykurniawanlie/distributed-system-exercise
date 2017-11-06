@@ -14,6 +14,7 @@ module.exports = function (clusterService, userService) { return {
       });
       res.json(response.data);
     } catch (e) {
+      console.log(e);
       res.json({ error: 'Failed to connect to ' + destUrl });
     }
   },
@@ -32,6 +33,7 @@ module.exports = function (clusterService, userService) { return {
       });
       res.json(response.data);
     } catch (e) {
+      console.log(e);
       res.json({ error: 'Failed to connect to ' + destUrl });
     }
   },
@@ -49,6 +51,7 @@ module.exports = function (clusterService, userService) { return {
       });
       res.json(response.data);
     } catch (e) {
+      console.log(e);
       res.json({ error: 'Failed to connect to ' + destUrl });
     }
   },
@@ -66,6 +69,7 @@ module.exports = function (clusterService, userService) { return {
       });
       res.json(response.data);
     } catch (e) {
+      console.log(e);
       res.json({ error: 'Failed to connect to ' + destUrl });
     }
   },
