@@ -125,6 +125,7 @@ module.exports = function (clusterService, userService) { return {
           data: { user_id: user_id, nilai: amount }
         });
 
+        console.log(destResponse.data);
         if (!destResponse.data.status_transfer ||
             destResponse.data.status_transfer != 1) {
           User.findOneAndUpdate({ _id: user_id }, {
@@ -132,12 +133,12 @@ module.exports = function (clusterService, userService) { return {
           }, function (err, data) {
             if (!err) {
               return res.json({
-                'status_transfer': ERROR_CODES['DATABASE'],
-                'message': 'Gagal mengembalikan dana pra-tansaksi karena error DB di ' + process.env.APP_URL
+                'status_transfer': destResponse.data.status_transfer
               });
             } else {
               return res.json({
-                'status_transfer': destResponse.data.status_transfer
+                'status_transfer': ERROR_CODES['DATABASE'],
+                'message': 'Gagal mengembalikan dana pra-tansaksi karena error DB di ' + process.env.APP_URL
               });
             }
           });
