@@ -1,6 +1,7 @@
 var axios = require('axios');
 var ERROR_CODES = require('../const/errorConstant');
 var User = require('../models/user');
+var TIMEOUT = 10000;
 
 module.exports = function (clusterService, userService) { return {
   ping: async function (req, res) {
@@ -10,7 +11,7 @@ module.exports = function (clusterService, userService) { return {
       var response = await axios({
         method: 'post',
         url: 'http://' + destUrl + '/ewallet/ping',
-        timeout: 1000
+        timeout: TIMEOUT
       });
       res.json(response.data);
     } catch (e) {
@@ -27,7 +28,7 @@ module.exports = function (clusterService, userService) { return {
       var response = await axios({
         method: 'post',
         url: 'http://' + destUrl + '/ewallet/register',
-        timeout: 1000,
+        timeout: TIMEOUT,
         json: true,
         data: { user_id: user_id, nama: nama }
       });
@@ -45,7 +46,7 @@ module.exports = function (clusterService, userService) { return {
       var response = await axios({
         method: 'post',
         url: 'http://' + destUrl + '/ewallet/getSaldo',
-        timeout: 1000,
+        timeout: TIMEOUT,
         json: true,
         data: { user_id: user_id }
       });
@@ -63,7 +64,7 @@ module.exports = function (clusterService, userService) { return {
       var response = await axios({
         method: 'post',
         url: 'http://' + destUrl + '/ewallet/getTotalSaldo',
-        timeout: 1000,
+        timeout: TIMEOUT,
         json: true,
         data: { user_id: user_id }
       });
@@ -93,7 +94,7 @@ module.exports = function (clusterService, userService) { return {
       }
 
       // Check amount that is going to be sent
-      if (amount < 0 || amount > 1000000000) {
+      if (amount < 0 || amount > TIMEOUT000000) {
         return res.json({ 'status_transfer': ERROR_CODES['LIMIT_EXCEEDED'] });
       }
 
@@ -118,7 +119,7 @@ module.exports = function (clusterService, userService) { return {
         var destResponse = await axios({
           method: 'post',
           url: 'http://' + destUserIp + '/ewallet/transfer',
-          timeout: 1000,
+          timeout: TIMEOUT,
           json: true,
           headers: {'Content-Type': 'application/json', 'Accepts': 'application/json'},
           data: { user_id: user_id, nilai: amount }
