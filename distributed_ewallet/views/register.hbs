@@ -100,7 +100,7 @@
             url: '{{ env.APP_URL }}/api/find/' + userId,
             type: 'GET',
             dataType: 'json',
-            timeout: 2000,
+            timeout: 20000,
           })
           .done(function(result) {
             if (!result) {
@@ -120,7 +120,7 @@
             type: 'POST',
             dataType: 'json',
             data: { destUrl: url, user_id: user_id, nama: nama},
-            timeout: 2000
+            timeout: 20000
           })
           .done(function(result) {
             $('#result-box').html(JSON.stringify(result, null, 2));

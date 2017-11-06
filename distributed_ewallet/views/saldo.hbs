@@ -94,7 +94,7 @@
             url: '{{ env.APP_URL }}/api/find/' + user_id,
             type: 'GET',
             dataType: 'json',
-            timeout: 2000,
+            timeout: 20000,
           })
           .done(function(result) {
             if (!result) {
@@ -114,7 +114,7 @@
             type: 'POST',
             dataType: 'json',
             data: {user_id: user_id, destUrl: targetIp},
-            timeout: 2000
+            timeout: 20000
           })
           .done(function(result) {
             console.log(result);
