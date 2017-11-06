@@ -122,9 +122,9 @@
           $('#result-box').html('');
 
           var targetUserId = $('input[name="targetUserId"]').val();
-          findIp(targetUserId, function (user_ip) {
-            $('input[name="targetIp"]').val(user_ip);
-            sendRequest(user_ip);
+          findIp(targetUserId, function (targetIp) {
+            $('input[name="targetIp"]').val(targetIp);
+            sendRequest(targetIp);
           });
         });
 

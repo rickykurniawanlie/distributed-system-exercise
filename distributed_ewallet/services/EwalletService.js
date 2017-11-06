@@ -113,10 +113,15 @@ class EwalletService {
     try {
       var userResult = await User.findOneAndUpdate({ _id: req.body.user_id }, {
         $inc: { balance: req.body.nilai }
+      }, function (err, data) {
+        console.log(err);
+        console.log(data);
+        if (!data) {
+          return res.json({ 'status_transfer': ERROR_CODES['UNREGISTERED']});
+        } else {
+          return res.json({ 'status_transfer': ERROR_CODES['SUCCESS'] });
+        }
       });
-      if (!userResult)
-        return res.json({ 'status_transfer': ERROR_CODES['UNREGISTERED']});
-      return res.json({ 'status_transfer': ERROR_CODES['SUCCESS'] })
     } catch (e) {
       return res.json({ 'status_transfer': ERROR_CODES['DATABASE']});
     }

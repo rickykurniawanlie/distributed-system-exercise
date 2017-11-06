@@ -74,13 +74,15 @@ app.post('/ewallet/transfer', quorumMiddleware.majority, ewalletController.trans
 app.post('/ewallet/getSaldo', quorumMiddleware.majority, ewalletController.getSaldo);
 app.post('/ewallet/getTotalSaldo', quorumMiddleware.full, ewalletController.getTotalSaldo);
 
-app.post('/api/transfer', apiController.transfer);
 app.post('/api/ping', apiController.ping);
+app.post('/api/register', apiController.register);
+app.post('/api/transfer', apiController.transfer);
+app.post('/api/saldo', apiController.saldo);
+app.post('/api/totalSaldo', apiController.totalSaldo);
 app.get('/api/find/:user_id', apiController.getIpFromId);
 
 // Sorry for the hack
 app.get('/webui/misc', async function(req, res, next) {
-  console.log(await clusterService.getMembers());
   res.render('misc', {
     env: process.env,
     users: await userService.getUsers(),

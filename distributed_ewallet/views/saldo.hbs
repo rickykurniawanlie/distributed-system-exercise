@@ -54,7 +54,7 @@
                   <div class="col col-6">
                     <div class="form-group">
                       <label> By User ID</label>
-                      <input type="text" class="form-control" name="targetUserId" placeholder="Enter user ID">
+                      <input type="text" class="form-control" name="targetId" placeholder="Enter user ID">
                     </div>
                     <button id="submit-uid-btn" type="submit" class="btn btn-primary submit-btn">Submit</button>
                   </div>
@@ -91,7 +91,7 @@
       $(document).ready(function () {
         var findIp = function (user_id, callback) {
           $.ajax({
-            url: '{{ env.APP_URL }}' + '/api/find/' + user_id,
+            url: '{{ env.APP_URL }}/api/find/' + user_id,
             type: 'GET',
             dataType: 'json',
             timeout: 2000,
@@ -108,12 +108,12 @@
           });
         };
 
-        var sendRequest = function (url, user_id) {
+        var sendRequest = function (targetIp, user_id) {
           $.ajax({
-            url: 'http://' + url + '/ewallet/getSaldo',
+            url: '{{ env.APP_URL }}/api/saldo',
             type: 'POST',
             dataType: 'json',
-            data: {user_id: user_id},
+            data: {user_id: user_id, destUrl: targetIp},
             timeout: 2000
           })
           .done(function(result) {
@@ -128,11 +128,11 @@
         $('#submit-uid-btn').on('click', function () {
           $('#result-box').html('');
 
-          var targetUserId = $('input[name="targetUserId"]').val();
+          var targetId = $('input[name="targetId"]').val();
           var user_id = $('input[name="user_id"]').val();
-          findIp(targetUserId, function (user_ip) {
-            $('input[name="targetIp"]').val(user_ip);
-            sendRequest(user_ip, user_id);
+          findIp(targetId, function (targetIp) {
+            $('input[name="targetIp"]').val(targetIp);
+            sendRequest(targetIp, user_id);
           });
         });
 

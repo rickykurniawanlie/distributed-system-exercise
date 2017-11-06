@@ -60,7 +60,7 @@
                   <div class="col col-6">
                     <div class="form-group">
                       <label> By User ID</label>
-                      <input type="text" class="form-control" name="targetUserId" placeholder="Enter user ID">
+                      <input type="text" class="form-control" name="targetId" placeholder="Enter user ID">
                     </div>
                     <button id="submit-uid-btn" type="submit" class="btn btn-primary submit-btn">Submit</button>
                   </div>
@@ -97,7 +97,7 @@
       $(document).ready(function () {
         var findIp = function (userId, callback) {
           $.ajax({
-            url: '{{ env.APP_URL }}' + '/api/find/' + userId,
+            url: '{{ env.APP_URL }}/api/find/' + userId,
             type: 'GET',
             dataType: 'json',
             timeout: 2000,
@@ -133,12 +133,12 @@
         $('#submit-uid-btn').on('click', function () {
           $('#result-box').html('');
 
-          var targetUserId = $('input[name="targetUserId"]').val();
+          var targetId = $('input[name="targetId"]').val();
           var user_id = $('input[name="user_id"]').val();
           var nama = $('input[name="name"]').val();
-          findIp(targetUserId, function (user_ip, user_id, nama) {
-            $('input[name="targetIp"]').val(user_ip);
-            sendRequest(user_ip);
+          findIp(targetId, function (targetIp, user_id, nama) {
+            $('input[name="targetIp"]').val(targetIp);
+            sendRequest(targetIp);
           });
         });
 
