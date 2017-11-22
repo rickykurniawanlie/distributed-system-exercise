@@ -34,9 +34,14 @@ class EwalletService {
   }
 
   async getGlobalBalance(user_id, callback) {
+    console.log('[totalSaldo][' + user_id + ']');
+    console.log('[totalSaldo][' + user_id + '] Get IP');
     var user_ip = await this.clusterService.getIpById(user_id);
-    if (!user_ip)
+    console.log('[totalSaldo][' + user_id + '] IP: ' + user_ip);
+    if (!user_ip) {
+      console.log('[totalSaldo][' + user_id + '] Not registered');
       return callback(ERROR_CODES['UNREGISTERED']);
+    }
 
     // Check inconsistent service repository
     var this_user_ip = await this.clusterService.getIpById(process.env.APP_ID);
@@ -45,15 +50,21 @@ class EwalletService {
     }
 
     try {
+      console.log('[totalSaldo][' + user_id + '] Send request to ' + user_ip);
       var response = await axios({
         method: 'POST',
         url: 'http://' + user_ip + '/ewallet/getTotalSaldo',
-        body: { 'user_id': user_id },
+        data: { 'user_id': user_id },
         json: true,
-        timeout: 1000
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 10000
       });
+      console.log('[totalSaldo][' + user_id + '] Result:');
+      console.log(response.data);
       return callback(response.data.nilai_saldo);
     } catch (e) {
+      console.log('[totalSaldo][' + user_id + '] Failed');
+      console.log(e);
       return callback(ERROR_CODES['UNDEFINED']);
     }
   }
@@ -81,9 +92,11 @@ class EwalletService {
         var nilaiSaldo;
         try {
           nilaiSaldo = parseInt(body.nilai_saldo);
-          if (nilaiSaldo > 0) {
+          if (nilaiSaldo >= 0) {
             totalBalance += body.nilai_saldo;
             successCount++;
+          } else {
+            console.log('[totalSaldo][host] ip:' + nodes[nodeId] + '; nilai_saldo: ' + nilaiSaldo);
           }
         } catch (e) {
           errorNode.push(nodeId);
@@ -98,7 +111,6 @@ class EwalletService {
       if (successCount === totalNode)
         callback(totalBalance);
       else {
-        console.log('[getTotalSaldo] ip: ' + user_ip + ' failed');
         console.log('[getTotalSaldo] unreachable: ' + JSON.stringify(unreachableNode));
         console.log('[getTotalSaldo] error: ' + JSON.stringify(errorNode));
         callback(ERROR_CODES['HOST_DOWN']);
@@ -107,14 +119,20 @@ class EwalletService {
   }
 
   async transfer(req, res) {
-    if (req.body.nilai < 0 || req.body.nilai > 1000000000)
+    console.log('[Transfer] Start');
+    if (req.body.nilai < 0 || req.body.nilai > 1000000000) {
       return res.json({ 'status_transfer': ERROR_CODES['LIMIT_EXCEEDED']});
+      console.log('[Transfer] Limit exceeded');
+    }
 
     try {
+      console.log('[Transfer] Find user');
       var userResult = await User.findOneAndUpdate({ _id: req.body.user_id }, {
         $inc: { balance: req.body.nilai }
       }, function (err, data) {
+        console.log('[Transfer] Read DB error');
         console.log(err);
+        console.log('[Transfer] Read DB result');
         console.log(data);
         if (!data) {
           return res.json({ 'status_transfer': ERROR_CODES['UNREGISTERED']});

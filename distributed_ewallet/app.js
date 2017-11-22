@@ -90,6 +90,10 @@ app.get('/webui/misc', async function(req, res, next) {
   });
 });
 
+app.get('/svcrepo', async function (req, res, next) {
+  res.json([{ "ip": "172.17.0.27", "npm": "1406569794" }, { "ip": "172.17.0.32", "npm": "1406564074" }, { "ip": "172.17.0.54", "npm": "1406543624" }, { "ip": "172.17.0.31", "npm": "1406565133" }, { "ip": "172.17.0.11", "npm": "1406623266" }, { "ip": "172.17.0.57", "npm": "1406543574" }]);
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');

@@ -6,10 +6,10 @@ module.exports = {
     let msg = {};
     if (healthy) {
       msg.pong = constant.HEALTHY_STAT;
-      msg.message = constant.HEALTHY_MSG;
+//      msg.message = constant.HEALTHY_MSG;
     } else {
       msg.pong = constant.UNHEALTHY_STAT;
-      msg.message = constant.UNHEALTHY_MSG;
+//      msg.message = constant.UNHEALTHY_MSG;
     }
     res.json(msg);
   },

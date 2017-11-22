@@ -42,12 +42,12 @@ module.exports = function (clusterService) {
         }).then(function (response) {
           healthyNode++;
         }).catch(function (error) {
-          //
+          console.log('[Quorum] Failed: ' + nodes[nodeId]);
         });
         promises.push(promise);
       }
       Promise.all(promises).then(function (result) {
-        console.log('Result of quorum = ' + healthyNode + '/' + totalNode + '. Required >50%');
+        console.log('[Quorum] Result: ' + healthyNode + '/' + totalNode + '. Required >50%');
         if (healthyNode/totalNode > 0.5)
           req.quorum = 'ok';
         else
@@ -70,12 +70,12 @@ module.exports = function (clusterService) {
         }).then(function (response) {
           healthyNode++;
         }).catch(function (error) {
-          //
+          console.log('[Quorum] Failed: ' + nodes[nodeId]);
         });
         promises.push(promise);
       }
       Promise.all(promises).then(function (result) {
-        console.log('Result of quorum = ' + healthyNode + '/' + totalNode + '. Required 100%');
+        console.log('[Quorum] Result: ' + healthyNode + '/' + totalNode + '. Required 100%');
         if (healthyNode/totalNode === 1)
           req.quorum = 'ok';
         else

@@ -122,7 +122,7 @@ module.exports = function (clusterService, userService) { return {
           timeout: TIMEOUT,
           json: true,
           headers: {'Content-Type': 'application/json', 'Accepts': 'application/json'},
-          data: { user_id: user_id, nilai: amount }
+          data: { user_id: user_id, nilai: parseInt(amount) }
         });
 
         console.log(destResponse.data);
