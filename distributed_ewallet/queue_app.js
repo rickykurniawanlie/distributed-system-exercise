@@ -34,7 +34,7 @@ var infraQueueController = new InfraQueueController(infraCache, clusterService);
 var ewalletQueueController = require('./controllers/EwalletQueueController')(ewalletService, clusterService);
 var apiQueueController = require('./controllers/ApiQueueController')(clusterService, userService);
 
-infraQueueController.start('amqp:localhost:5672',
+infraQueueController.start(process.env.RABBITMQ_URL,
   {
     name: 'EX_PING',
     type: 'fanout',
