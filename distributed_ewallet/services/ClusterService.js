@@ -3,6 +3,11 @@ class ClusterService {
     this.clusterAccessor = clusterAccessor;
   }
 
+  async isMember(id) {
+  	var members = await this.clusterAccessor.getMembers();
+  	return (members[id])? true : false;
+  }
+
   async getMembers() {
     return await this.clusterAccessor.getMembers();
   }
