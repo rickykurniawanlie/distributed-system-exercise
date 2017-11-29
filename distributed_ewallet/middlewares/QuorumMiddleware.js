@@ -38,7 +38,7 @@ module.exports = function (clusterService) {
         promise = axios({
           method: 'post',
           url: 'http://' + nodes[nodeId] + '/ewallet/ping',
-          timeout: 1000
+          timeout: 2000
         }).then(function (response) {
           healthyNode++;
         }).catch(function (error) {
