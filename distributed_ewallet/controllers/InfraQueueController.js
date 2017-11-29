@@ -35,8 +35,10 @@ class InfraQueueController {
   startSubscriber(urlString, exSpecs, qSpecs) {
     let self = this;
     amqp.connect(urlString, function(err, conn) {
+      if (err) logger.error('[SUB] Connect failed', err);
+
       conn.createChannel(function(err, ch) {
-        if (err) logger.error('[SUB] Create channel failed');
+        if (err) logger.error('[SUB] Create channel failed', err);
 
         ch.assertExchange(exSpecs.name, exSpecs.type, exSpecs.opts);
 
@@ -84,7 +86,10 @@ class InfraQueueController {
   startPublisher(urlString, exSpecs, qSpecs) {
     let self = this;
     amqp.connect(urlString, function(err, conn) {
+      if (err) logger.error('[PUB] Connect failed', err);
       conn.createChannel(function(err, ch) {
+        if (err) logger.error('[PUB] Create channel failed', err);
+
         ch.assertExchange(exSpecs.name, exSpecs.type, exSpecs.opts);
         logger.verbose('[PUB] Exchange ' + exSpecs.name + ' created');
         logger.verbose('[PUB] Set ping every ' + PING_MILLIS + ' millis');
