@@ -9,27 +9,27 @@ class EwalletService {
     this.clusterService = clusterService;
   }
 
-  async registerUser(req, res) {
+  async registerUser(user_id, name, balance, cb) {
     let newUser = new User({
-      _id: req.body.user_id,
-      name: req.body.nama,
-      balance: 0
+      _id: user_id,
+      name: name,
+      balance: balance
     });
     newUser.save(function (err) {
       if (err) {
-        res.json({ 'status_register': ERROR_CODES['DATABASE'] })
+        cb(ERROR_CODES['DATABASE']);
       } else {
-        res.json({ 'status_register': ERROR_CODES['SUCCESS'] });
+        cb(ERROR_CODES['SUCCESS']);
       }
     });
   }
 
-  async getLocalBalance(req, res) {
-    User.find({ _id: req.body.user_id}, function (err, users) {
+  async getLocalBalance(user_id, cb) {
+    User.find({ _id: user_id}, function (err, users) {
       if (users.length === 0) {
-        return res.json({ 'nilai_saldo': ERROR_CODES['UNREGISTERED']});
+        return cb(ERROR_CODES['UNREGISTERED']);
       }
-      return res.json({ 'nilai_saldo': users[0].balance });
+      return cb(users[0].balance);
     });
   }
 
@@ -118,30 +118,30 @@ class EwalletService {
     });
   }
 
-  async transfer(req, res) {
+  async transfer(user_id, amount, cb) {
     console.log('[Transfer] Start');
-    if (req.body.nilai < 0 || req.body.nilai > 1000000000) {
-      return res.json({ 'status_transfer': ERROR_CODES['LIMIT_EXCEEDED']});
+    if (amount < 0 || amount > 1000000000) {
       console.log('[Transfer] Limit exceeded');
+      return cb(ERROR_CODES['LIMIT_EXCEEDED']);
     }
 
     try {
       console.log('[Transfer] Find user');
-      var userResult = await User.findOneAndUpdate({ _id: req.body.user_id }, {
-        $inc: { balance: req.body.nilai }
+      var userResult = await User.findOneAndUpdate({ _id: user_id }, {
+        $inc: { balance: amount }
       }, function (err, data) {
         console.log('[Transfer] Read DB error');
         console.log(err);
         console.log('[Transfer] Read DB result');
         console.log(data);
         if (!data) {
-          return res.json({ 'status_transfer': ERROR_CODES['UNREGISTERED']});
+          return cb(ERROR_CODES['UNREGISTERED']);
         } else {
-          return res.json({ 'status_transfer': ERROR_CODES['SUCCESS'] });
+          return cb(ERROR_CODES['SUCCESS']);
         }
       });
     } catch (e) {
-      return res.json({ 'status_transfer': ERROR_CODES['DATABASE']});
+      return cb(ERROR_CODES['DATABASE']);
     }
   }
 }

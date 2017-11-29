@@ -8,7 +8,7 @@ module.exports = function (ewalletService, clusterService) { return {
 
     let user_id = req.body.user_id;
     let nama = req.body.nama;
-    let isOk = user_id && nama;
+    let isOk = user_id && nama; 
     if (!isOk) {
       return res.json({ "status_register": ERROR_CODES['UNDEFINED'] });
     }
