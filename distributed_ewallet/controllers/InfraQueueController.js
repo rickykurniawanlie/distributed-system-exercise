@@ -35,36 +35,36 @@ class InfraQueueController {
   startSubscriber(urlString, exSpecs, qSpecs) {
     let self = this;
     amqp.connect(urlString, function(err, conn) {
-      if (err) logger.error('[SUB] Connect failed', err);
+      if (err) logger.error('[PING][SUB] Connect failed', err);
 
       conn.createChannel(function(err, ch) {
-        if (err) logger.error('[SUB] Create channel failed', err);
+        if (err) logger.error('[PING][SUB] Create channel failed', err);
 
         ch.assertExchange(exSpecs.name, exSpecs.type, exSpecs.opts);
 
         ch.assertQueue(qSpecs.name, qSpecs.opts, function(err, q) {
-          logger.verbose('[SUB] Queue ' + q.queue + ' created');
+          if (err) logger.error('[PING][SUB] Queue error', err);
+          logger.verbose('[PING][SUB] Queue ' + q.queue + ' created');
           ch.bindQueue(q.queue, exSpecs.name, '');
-          logger.verbose('[SUB] Queue successfully bound to ' + exSpecs.name);
+          logger.verbose('[PING][SUB] Queue successfully bound to ' + exSpecs.name);
 
           ch.consume(q.queue, async function(msg) {
             try {
               let obj = JSON.parse(msg.content.toString());
               if (await self.clusterService.isMember(obj.npm)) {
-                logger.info(printf('[SUB] Received %s from %s sent at %s',
-                  obj.action, obj.npm, obj.ts)
+                logger.info(printf('[PING][SUB][%s] ts: %s', obj.npm, obj.ts)
                 );
                 self.quorumCache.put(obj.npm, true, CACHE_MILLIS,
                   function (key, value) {
-                    logger.debug('[SUB] ' + key + ' removed from quorum');
+                    logger.debug('[PING][SUB][' + key + '] Removed from quorum');
                   }
                 );
-                logger.debug('[SUB] QuorumCache: ' + self.quorumCache.keys().toString());
+                logger.debug('[PING][SUB] QuorumCache: ' + self.quorumCache.keys().toString());
               } else {
-                logger.debug('[SUB]' + obj.npm + ' is not member of cluster. Ignoring...');
+                logger.debug('[PING][SUB][' + obj.npm + '] Not cluster member. Ignoring...');
               }
             } catch (e) {
-              logger.error(e);
+              logger.error('[PING][SUB] Receiving non-json: ' + msg.content.toString());
             }
           }, {noAck: true});
         });

@@ -44,7 +44,7 @@ infraQueueController.start(process.env.RABBITMQ_URL,
     }
   },
   {
-    name: 'EX_PING',
+    name: '',
     type: 'fanout',
     routing_key: '',
     opts: {
