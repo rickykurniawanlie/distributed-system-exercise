@@ -29,7 +29,7 @@ class Qiu {
 
     amqp.connect(self.url, function(err, conn) {
       if (err) {
-        return logger.error('[' + exchangeName + '][' + routeIn + '] Failed to connect to ' + this.url, err);
+        return logger.error('[' + exchangeName + '][' + routeIn + '] Failed to connect to ' + self.url, err);
       }
 
       conn.createChannel(function(err, ch) {
