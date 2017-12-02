@@ -1,70 +1,64 @@
 let ERROR_CODES = require('../const/errorConstant');
+let printf = require('printf');
 
-module.exports = function (ewalletService, clusterService) { return {
-  register: async function (req, res) {
-    if (!req.quorum || req.quorum !== 'ok') {
-      return res.json({ "status_register": ERROR_CODES['QUORUM']});
-    }
-
-    let user_id = req.body.user_id;
-    let nama = req.body.nama;
-    let isOk = user_id && nama; 
-    if (!isOk) {
-      return res.json({ "status_register": ERROR_CODES['UNDEFINED'] });
-    }
-
-    await ewalletService.registerUser(user_id, nama, 0,
-      (status) => {
-        res.json({ 'status_register': status });
-      }
+module.exports = function (ewalletService, clusterService) {
+  var getTimestamp = function (date) {
+    return printf('%02d-%02d-%02d %02d:%02d:%02d',
+      date.getFullYear(), date.getMonth(), date.getDate(),
+      date.getHours(), date.getMinutes(), date.getSeconds()
     );
+  };
+  return {
+  register: async function (req, res) {
+    await ewalletService.registerUser(req.user_id, req.name, 0, function (result) {
+      var response = {
+        'action': 'register',
+        'type': 'response',
+        'status_register': result,
+        'ts': getTimestamp(new Date())
+      };
+      res('RESP_' + req.user_id, response);
+    });
   },
   getSaldo: async function (req, res) {
-    if (!req.quorum || req.quorum !== 'ok') {
-      return res.json({ 'nilai_saldo': ERROR_CODES['QUORUM']});
-    }
-
-    let user_id = req.body.user_id;
-    if (!user_id) {
-      return res.json({ 'nilai_saldo': ERROR_CODES['UNDEFINED']});
-    }
-
-    await ewalletService.getLocalBalance(user_id, (result) => {
-      res.json({ 'nilai_saldo': result });
+    await ewalletService.getLocalBalance(req.user_id, function (result) {
+      var response = {
+        'action': 'get_saldo',
+        'type': 'response',
+        'nilai_saldo': result,
+        'ts': getTimestamp(new Date())
+      };
+      res('RESP_' + req.user_id, response);
     });
   },
   getTotalSaldo: async function (req, res) {
-    if (!req.quorum || req.quorum !== 'ok') {
-      return res.json({ "nilai_saldo": ERROR_CODES['QUORUM']});
-    }
+    var user_id = req.user_id + "";   // convert to string
 
-    var user_id = req.body.user_id + "";   // convert to string
-    var callback = function (balance) {
-      res.json({
-        'nilai_saldo': balance
-      });
+    var callback = function (result) {
+      var response = {
+        'action': 'get_total_saldo',
+        'type': 'response',
+        'nilai_saldo': result,
+        'ts': getTimestamp(new Date())
+      };
+      res('RESP_' + req.user_id, response);
     };
 
-    if (user_id === process.env.APP_ID) {
+    if (req.user_id === process.env.APP_ID) {
       await ewalletService.getHostGlobalBalance(callback);
     } else {
-      await ewalletService.getGlobalBalance(user_id, callback);
+      await ewalletService.getGlobalBalance(req.user_id, callback);
     }
   },
   transfer: async function (req, res) {
-    if (!req.quorum || req.quorum !== 'ok') {
-      return res.json({ "status_register": ERROR_CODES['QUORUM']});
-    }
-
-    let user_id = req.body.user_id;
-    let amount = req.body.nilai;
-    let isOk = user_id && nilai;
-    if (!isOk) {
-      return res.json({ "status_transfer": ERROR_CODES['UNDEFINED']});
-    }
-
-    await ewalletService.transfer(user_id, amount, (result) => {
-      res.json({ 'status_transfer': result });
+    await ewalletService.transfer(req.user_id, req.nilai, function (result) {
+      var response = {
+        'action': 'transfer',
+        'type': 'response',
+        'status_transfer': result,
+        'ts': getTimestamp(new Date())
+      };
+      res('RESP_' + req.user_id, response);
     });
   }
 }}

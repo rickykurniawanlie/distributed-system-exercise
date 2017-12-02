@@ -32,6 +32,17 @@ class InfraQueueController {
     return this.quorumCache.size();
   }
 
+  makeBuffer(content) {
+    return new Buffer.from(JSON.stringify(content));
+  }
+
+  getTimestamp(date) {
+    return printf('%02d-%02d-%02d %02d:%02d:%02d',
+      date.getFullYear(), date.getMonth(), date.getDate(),
+      date.getHours(), date.getMinutes(), date.getSeconds()
+    );
+  }
+
   startSubscriber(urlString, exSpecs, qSpecs) {
     let self = this;
     amqp.connect(urlString, function(err, conn) {
@@ -72,27 +83,16 @@ class InfraQueueController {
     });
   }
 
-  makeBuffer(content) {
-    return new Buffer.from(JSON.stringify(content));
-  }
-
-  getTimestamp(date) {
-    return printf('%02d-%02d-%02d %02d:%02d:%02d',
-      date.getFullYear(), date.getMonth(), date.getDate(),
-      date.getHours(), date.getMinutes(), date.getSeconds()
-    );
-  }
-
   startPublisher(urlString, exSpecs, qSpecs) {
     let self = this;
     amqp.connect(urlString, function(err, conn) {
-      if (err) logger.error('[PUB] Connect failed', err);
+      if (err) logger.error('[PING][PUB] Connect failed', err);
       conn.createChannel(function(err, ch) {
-        if (err) logger.error('[PUB] Create channel failed', err);
+        if (err) logger.error('[PING][PUB] Create channel failed', err);
 
         ch.assertExchange(exSpecs.name, exSpecs.type, exSpecs.opts);
-        logger.verbose('[PUB] Exchange ' + exSpecs.name + ' created');
-        logger.verbose('[PUB] Set ping every ' + PING_MILLIS + ' millis');
+        logger.verbose('[PING][PUB] Exchange ' + exSpecs.name + ' created');
+        logger.verbose('[PING][PUB] Set ping every ' + PING_MILLIS + ' millis');
         setInterval(function() {
           var appId = process.env.APP_ID;
           ch.publish(exSpecs.name, '', self.makeBuffer({
@@ -100,7 +100,7 @@ class InfraQueueController {
             'npm': process.env.APP_ID,
             'ts': self.getTimestamp(new Date())
           }));
-          logger.debug('[PING] Publish');
+          logger.debug('[PING][PUB] Ping');
         }, PING_MILLIS);
       });
     });
