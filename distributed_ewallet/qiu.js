@@ -3,7 +3,7 @@ let printf = require('printf');
 let logger = require('./services/Logger');
 
 class Qiu {
-  construct (url) {
+  constructor (url) {
     this.url = url;
   }
 
