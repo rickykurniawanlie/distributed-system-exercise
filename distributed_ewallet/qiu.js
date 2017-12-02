@@ -65,6 +65,8 @@ class Qiu {
   }
 
   subscribeDirect(exchangeName, routeIn, handler, opts) {
+    opts = {};
+    opts.exchange = opts.exchange || { durable: true };
     this.subscribe('direct', exchangeName, routeIn, handler, opts);
   }
 
