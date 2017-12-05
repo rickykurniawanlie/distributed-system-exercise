@@ -11,9 +11,9 @@ module.exports = function (ewalletService, clusterService) {
 
   return {
   register: async function (req, res) {
-    if (!req.user_id || !req.name || !req.sender_id) return;
+    if (!req.user_id || !req.nama || !req.sender_id) return;
 
-    await ewalletService.registerUser(req.user_id, req.name, 0, function (result) {
+    await ewalletService.registerUser(req.user_id, req.nama, 0, function (result) {
       var response = {
         'action': 'register',
         'sender_id': process.env.APP_ID + '',
