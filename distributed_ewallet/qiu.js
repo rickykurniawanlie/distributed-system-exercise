@@ -51,6 +51,7 @@ class Qiu {
             try {
               logger.verbose('[' + exchangeName + '][' + routeIn + '] ' + q.queue + ' receive a message ' + typeof msg.content.toString());
               let req = JSON.parse(msg.content.toString());
+              logger.verbose(req);
               let res = function (routeOut, data) {
                 ch.publish(exchangeName, routeOut, self.makeBuffer(data));
               }

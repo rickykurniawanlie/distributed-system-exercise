@@ -8,9 +8,8 @@ const PING_MILLIS = 5000;
 const CACHE_MILLIS = 10000;
 
 class InfraQueueController {
-  constructor(quorumCache, clusterService) {
-    this.quorumCache = quorumCache;
-    this.clusterService = clusterService;
+  constructor(quorumService) {
+    this.quorumService = quorumService;
   }
 
   start(urlString, exSpecs, qSpecs) {
@@ -26,10 +25,6 @@ class InfraQueueController {
 
     this.startSubscriber(urlString, exSpecs, qSpecs);
     this.startPublisher(urlString, exSpecs, qSpecs);
-  }
-
-  getQuorumSize() {
-    return this.quorumCache.size();
   }
 
   makeBuffer(content) {
@@ -62,18 +57,8 @@ class InfraQueueController {
           ch.consume(q.queue, async function(msg) {
             try {
               let obj = JSON.parse(msg.content.toString());
-              if (await self.clusterService.isMember(obj.npm)) {
-                logger.info(printf('[PING][SUB][%s] ts: %s', obj.npm, obj.ts)
-                );
-                self.quorumCache.put(obj.npm, true, CACHE_MILLIS,
-                  function (key, value) {
-                    logger.debug('[PING][SUB][' + key + '] Removed from quorum');
-                  }
-                );
-                logger.debug('[PING][SUB] QuorumCache: ' + self.quorumCache.keys().toString());
-              } else {
-                logger.debug('[PING][SUB][' + obj.npm + '] Not cluster member. Ignoring...');
-              }
+
+              self.quorumService.updatePing(obj.npm);
             } catch (e) {
               logger.error('[PING][SUB] Receiving non-json: ' + msg.content.toString());
             }

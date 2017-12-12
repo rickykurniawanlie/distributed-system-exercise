@@ -1,7 +1,7 @@
 let ERROR_CODES = require('../const/errorConstant');
 let printf = require('printf');
 
-module.exports = function (ewalletService, clusterService) {
+module.exports = function (ewalletService, clusterService,  quorumService) {
   var getTimestamp = function (date) {
     return printf('%02d-%02d-%02d %02d:%02d:%02d',
       date.getFullYear(), date.getMonth(), date.getDate(),
@@ -12,6 +12,18 @@ module.exports = function (ewalletService, clusterService) {
   return {
   register: async function (req, res) {
     if (!req.user_id || !req.nama || !req.sender_id) return;
+
+    var isMajority = await quorumService.isMajority();
+    if (!isMajority) {
+      var response = {
+        'action': 'register',
+        'sender_id': process.env.APP_ID + '',
+        'type': 'response',
+        'status_register': ERROR_CODES['QUORUM'],
+        'ts': getTimestamp(new Date())
+      };
+      return res('RESP_' + req.sender_id, response);
+    }
 
     await ewalletService.registerUser(req.user_id, req.nama, 0, function (result) {
       var response = {
@@ -26,7 +38,19 @@ module.exports = function (ewalletService, clusterService) {
   },
   getSaldo: async function (req, res) {
     if (!req.user_id || !req.sender_id) return;
-    console.log(req);
+
+    var isMajority = await quorumService.isMajority();
+    if (!isMajority) {
+      var response = {
+        'action': 'get_saldo',
+        'sender_id': process.env.APP_ID + '',
+        'type': 'response',
+        'status_register': ERROR_CODES['QUORUM'],
+        'ts': getTimestamp(new Date())
+      };
+      res('RESP_' + req.sender_id, response);
+      return;
+    }
 
     await ewalletService.getLocalBalance(req.user_id, function (result) {
       var response = {
@@ -43,6 +67,18 @@ module.exports = function (ewalletService, clusterService) {
   getTotalSaldo: async function (req, res) {
     if (!req.user_id || !req.sender_id) return;
     var user_id = req.user_id + "";   // convert to string
+
+    var isFullQuorum = await quorumService.isFullQuorum();
+    if (!isFullQuorum) {
+      var response = {
+        'action': 'transfer',
+        'sender_id': process.env.APP_ID + '',
+        'type': 'response',
+        'status_transfer': ERROR_CODES['QUORUM'],
+        'ts': getTimestamp(new Date())
+      };
+      return res('RESP_' + req.sender_id, response);
+    }
 
     var callback = function (result) {
       var response = {
@@ -63,6 +99,18 @@ module.exports = function (ewalletService, clusterService) {
   },
   transfer: async function (req, res) {
     if (!req.user_id || !req.nilai || !req.sender_id) return;
+
+    var isMajority = await quorumService.isMajority();
+    if (!isMajority) {
+      var response = {
+        'action': 'transfer',
+        'sender_id': process.env.APP_ID + '',
+        'type': 'response',
+        'status_transfer': ERROR_CODES['QUORUM'],
+        'ts': getTimestamp(new Date())
+      };
+      return res('RESP_' + req.sender_id, response);
+    }
 
     await ewalletService.transfer(req.user_id, req.nilai, function (result) {
       var response = {

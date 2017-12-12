@@ -18,6 +18,7 @@ var clusterCache = new MemoryCache('CLUSTER');
 var ClusterCachedAccessor = require('./accessors/ClusterCachedAccessor');
 var clusterCachedAccessor = new ClusterCachedAccessor(clusterCache);
 
+var infraCache = new MemoryCache('INFRA');
 /**
  * Services
  */
@@ -27,15 +28,16 @@ var EwalletService = require('./services/EwalletService');
 var ewalletService = new EwalletService(clusterService);
 var UserService = require('./services/UserService');
 var userService = new UserService();
+var QuorumService = require('./services/QuorumService');
+var quorumService = new QuorumService(infraCache, clusterService)
 
 /**
  * Controllers
  */
-var infraCache = new MemoryCache('INFRA');
 var InfraQueueController = require('./controllers/InfraQueueController');
-var infraQueueController = new InfraQueueController(infraCache, clusterService);
-var ewalletQueueController = require('./controllers/EwalletQueueController')(ewalletService, clusterService);
-var apiQueueController = require('./controllers/ApiQueueController')(clusterService, userService);
+var infraQueueController = new InfraQueueController(quorumService);
+var EwalletQueueController = require('./controllers/EwalletQueueController');
+var ewalletQueueController = EwalletQueueController(ewalletService, clusterService, quorumService);
 
 var app = new Qiu(process.env.RABBITMQ_URL);
 
