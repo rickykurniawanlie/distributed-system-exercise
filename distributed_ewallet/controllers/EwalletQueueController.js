@@ -41,7 +41,7 @@ module.exports = function (ewalletService, clusterService,  quorumService, ewall
   getSaldo: async function (req, res) {
     if (!req.user_id || !req.sender_id) return;
 
-    var isMajority = true || await quorumService.isMajority();
+    var isMajority = await quorumService.isMajority();
     if (!isMajority) {
       var response = {
         'action': 'get_saldo',
@@ -70,17 +70,17 @@ module.exports = function (ewalletService, clusterService,  quorumService, ewall
     if (!req.user_id || !req.sender_id) return;
     var user_id = req.user_id + "";   // convert to string
 
-    // var isFullQuorum = await quorumService.isFullQuorum();
-    // if (!isFullQuorum) {
-    //   var response = {
-    //     'action': 'transfer',
-    //     'sender_id': process.env.APP_ID + '',
-    //     'type': 'response',
-    //     'status_transfer': ERROR_CODES['QUORUM'],
-    //     'ts': getTimestamp(new Date())
-    //   };
-    //   return res('RESP_' + req.sender_id, response);
-    // }
+    var isFullQuorum = await quorumService.isFullQuorum();
+    if (!isFullQuorum) {
+      var response = {
+        'action': 'transfer',
+        'sender_id': process.env.APP_ID + '',
+        'type': 'response',
+        'status_transfer': ERROR_CODES['QUORUM'],
+        'ts': getTimestamp(new Date())
+      };
+      return res('RESP_' + req.sender_id, response);
+    }
     const clusterMembers = await clusterService.getMembers();
 
     var total_saldo = 0;
