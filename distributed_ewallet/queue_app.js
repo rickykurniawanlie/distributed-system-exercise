@@ -11,10 +11,11 @@ try {
   console.log(err);
 }
 
+var clusterCache = new MemoryCache('CLUSTER');
+var ewalletCache = new MemoryCache('EWALLET');
 /**
  * Accessors
  */
-var clusterCache = new MemoryCache('CLUSTER');
 var ClusterCachedAccessor = require('./accessors/ClusterCachedAccessor');
 var clusterCachedAccessor = new ClusterCachedAccessor(clusterCache);
 
@@ -37,7 +38,7 @@ var quorumService = new QuorumService(infraCache, clusterService)
 var InfraQueueController = require('./controllers/InfraQueueController');
 var infraQueueController = new InfraQueueController(quorumService);
 var EwalletQueueController = require('./controllers/EwalletQueueController');
-var ewalletQueueController = EwalletQueueController(ewalletService, clusterService, quorumService);
+var ewalletQueueController = EwalletQueueController(ewalletService, clusterService, quorumService, ewalletCache);
 
 var app = new Qiu(process.env.RABBITMQ_URL);
 
