@@ -41,27 +41,13 @@ var ewalletQueueController = EwalletQueueController(ewalletService, clusterServi
 
 var app = new Qiu(process.env.RABBITMQ_URL);
 
-infraQueueController.start(process.env.RABBITMQ_URL,
-  {
-    name: 'EX_PING',
-    type: 'fanout',
-    routing_key: '',
-    opts: {
-      durable: false
-    }
-  },
-  {
-    name: '',
-    type: 'fanout',
-    routing_key: '',
-    opts: {
-      exclusive: true
-    }
-  }
-);
+app.start(function() {
+  var routingKey = 'REQ_' + process.env.APP_ID;
+  app.pubsubFanout('EX_PING', '', infraQueueController.pingSubscribe.bind(infraQueueController));
+  app.pubIntervalFanout('EX_PING', '', 5000, infraQueueController.pingPublish.bind(infraQueueController));
 
-var routingKey = 'REQ_' + process.env.APP_ID;
-app.subscribeDirect('EX_REGISTER', routingKey, ewalletQueueController.register);
-app.subscribeDirect('EX_GET_SALDO', routingKey, ewalletQueueController.getSaldo);
-app.subscribeDirect('EX_TRANSFER', routingKey, ewalletQueueController.transfer);
-app.subscribeDirect('EX_GET_TOTAL_SALDO', routingKey, ewalletQueueController.getTotalSaldo);
+  app.pubsubDirect('EX_REGISTER', routingKey, ewalletQueueController.register);
+  app.pubsubDirect('EX_GET_SALDO', routingKey, ewalletQueueController.getSaldo);
+  app.pubsubDirect('EX_TRANSFER', routingKey, ewalletQueueController.transfer);
+  app.pubsubDirect('EX_GET_TOTAL_SALDO', routingKey, ewalletQueueController.getTotalSaldo);
+});

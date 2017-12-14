@@ -5,6 +5,19 @@ let logger = require('./services/Logger');
 class Qiu {
   constructor (url) {
     this.url = url;
+    this.conn = null;
+  }
+
+  start (cb) {
+    const self = this;
+
+    amqp.connect(self.url, function(err, conn) {
+      if (err) {
+        return logger.error('[RABBITMQ] Failed to connect to ' + self.url, err);
+      }
+      self.conn = conn;
+      cb();
+    });
   }
 
   makeBuffer(content) {
@@ -18,7 +31,7 @@ class Qiu {
     );
   }
 
-  subscribe(exchangeType, exchangeName, routeIn, handler, opts) {
+  pubsub(exchangeType, exchangeName, routeIn, handler, opts) {
     let self = this;
 
     opts = opts || {};
@@ -27,52 +40,82 @@ class Qiu {
     opts.exchange = opts.exchange || { durable: false };
     opts.queue = opts.queue || { exclusive: true };
 
-    amqp.connect(self.url, function(err, conn) {
+    self.conn.createChannel(function(err, ch) {
       if (err) {
-        return logger.error('[' + exchangeName + '][' + routeIn + '] Failed to connect to ' + self.url, err);
+        return logger.error('[' + exchangeName + '][' + routeIn + '] Create channel failed', err);
       }
 
-      conn.createChannel(function(err, ch) {
+      ch.assertExchange(exchangeName, exchangeType, opts.exchange);
+
+      ch.assertQueue('', opts.queue, function(err, q) {
         if (err) {
-          return logger.error('[' + exchangeName + '][' + routeIn + '] Create channel failed', err);
+          return logger.error('[' + exchangeName + '][' + routeIn + '] Assert queue error', err);
         }
+        logger.verbose('[' + exchangeName + '][' + routeIn + '] Queue ' + q.queue + ' created');
+        ch.bindQueue(q.queue, exchangeName, routeIn);
+        logger.verbose('[' + exchangeName + '][' + routeIn + '] ' + q.queue + ' successfully binded to ' + exchangeName);
 
-        ch.assertExchange(exchangeName, exchangeType, opts.exchange);
-
-        ch.assertQueue('', opts.queue, function(err, q) {
-          if (err) {
-            return logger.error('[' + exchangeName + '][' + routeIn + '] Assert queue error', err);
-          }
-          logger.verbose('[' + exchangeName + '][' + routeIn + '] Queue ' + q.queue + ' created');
-          ch.bindQueue(q.queue, exchangeName, routeIn);
-          logger.verbose('[' + exchangeName + '][' + routeIn + '] ' + q.queue + ' successfully binded to ' + exchangeName);
-
-          ch.consume(q.queue, async function(msg) {
-            try {
-              logger.verbose('[' + exchangeName + '][' + routeIn + '] ' + q.queue + ' receive a message ' + typeof msg.content.toString());
-              let req = JSON.parse(msg.content.toString());
-              logger.verbose(req);
-              let res = function (routeOut, data) {
-                ch.publish(exchangeName, routeOut, self.makeBuffer(data));
-              }
-              handler(req, res);
-            } catch (e) {
-              logger.error(e);
+        ch.consume(q.queue, async function(msg) {
+          try {
+            logger.verbose('[' + exchangeName + '][' + routeIn + '] ' + q.queue + ' receive a message ' + typeof msg.content.toString());
+            let req = JSON.parse(msg.content.toString());
+            logger.verbose(req);
+            let res = function (routeOut, data) {
+              ch.publish(exchangeName, routeOut, self.makeBuffer(data));
             }
-          }, opts.consume);
-        });
+            handler(req, res);
+          } catch (e) {
+            logger.error(e);
+          }
+        }, opts.consume);
       });
     });
   }
 
-  subscribeDirect(exchangeName, routeIn, handler, opts) {
+  pubsubDirect(exchangeName, routeIn, handler, opts) {
     opts = {};
     opts.exchange = opts.exchange || { durable: true };
-    this.subscribe('direct', exchangeName, routeIn, handler, opts);
+    this.pubsub('direct', exchangeName, routeIn, handler, opts);
   }
 
-  subscribeFanout(exchangeName, routeIn, handler, opts) {
-    this.subscribe('fanout', exchangeName, routeIn, handler, opts);
+  pubsubFanout(exchangeName, routeIn, handler, opts) {
+    opts = {};
+    opts.exchange = opts.exchange || { durable: false };
+    this.pubsub('fanout', exchangeName, routeIn, handler, opts);
+  }
+
+  pubIntervalFanout(exchangeName, routeIn, interval, handler, opts) {
+    let self = this;
+
+    opts = opts || {};
+    opts.name = opts.name || (exchangeName + '->' + routeIn);
+    opts.consume = opts.consume || {noAck: true};
+    opts.exchange = opts.exchange || { durable: false };
+    opts.queue = opts.queue || { exclusive: true };
+
+    self.conn.createChannel(function(err, ch) {
+      if (err) {
+        return logger.error('[' + exchangeName + '][' + routeIn + '] Create channel failed', err);
+      }
+
+      ch.assertExchange(exchangeName, 'fanout', opts.exchange);
+
+      ch.assertQueue('', opts.queue, function(err, q) {
+        if (err) {
+          return logger.error('[' + exchangeName + '][' + routeIn + '] Assert queue error', err);
+        }
+        logger.verbose('[' + exchangeName + '][' + routeIn + '] Queue ' + q.queue + ' created');
+        ch.bindQueue(q.queue, exchangeName, routeIn);
+        logger.verbose('[' + exchangeName + '][' + routeIn + '] ' + q.queue + ' successfully binded to ' + exchangeName);
+
+        let res = function (data) {
+          ch.publish(exchangeName, '', self.makeBuffer(data));
+        }
+        setInterval(function () {
+          handler(res)
+        }, interval);
+      });
+    });
   }
 }
 

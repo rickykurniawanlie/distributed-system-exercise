@@ -12,83 +12,28 @@ class InfraQueueController {
     this.quorumService = quorumService;
   }
 
-  start(urlString, exSpecs, qSpecs) {
-    if (urlString.indexOf('amqp') < 0) {
-      logger.error('Queue URL should contain amqp protocol');
-    }
-    if (!exSpecs || !exSpecs.name || !exSpecs.type || !exSpecs.opts) {
-      logger.error('Parameter "exchange" is invalid');
-    }
-    if (!qSpecs || qSpecs.name == null || !qSpecs.type || !qSpecs.opts) {
-      logger.error('Paramter "queue" is invalid');
-    }
+  pingSubscribe (req, res) {
+    this.quorumService.updatePing(req.npm);
+  }
 
-    this.startSubscriber(urlString, exSpecs, qSpecs);
-    this.startPublisher(urlString, exSpecs, qSpecs);
+  pingPublish (res) {
+    var appId = process.env.APP_ID;
+    res({
+      'action': 'ping',
+      'npm': process.env.APP_ID,
+      'ts': this.getTimestamp(new Date())
+    });
   }
 
   makeBuffer(content) {
     return new Buffer.from(JSON.stringify(content));
   }
 
-  getTimestamp(date) {
+  getTimestamp (date) {
     return printf('%02d-%02d-%02d %02d:%02d:%02d',
       date.getFullYear(), date.getMonth(), date.getDate(),
       date.getHours(), date.getMinutes(), date.getSeconds()
     );
-  }
-
-  startSubscriber(urlString, exSpecs, qSpecs) {
-    let self = this;
-    amqp.connect(urlString, function(err, conn) {
-      if (err) logger.error('[PING][SUB] Connect failed', err);
-
-      conn.createChannel(function(err, ch) {
-        if (err) logger.error('[PING][SUB] Create channel failed', err);
-
-        ch.assertExchange(exSpecs.name, exSpecs.type, exSpecs.opts);
-
-        ch.assertQueue(qSpecs.name, qSpecs.opts, function(err, q) {
-          if (err) logger.error('[PING][SUB] Queue error', err);
-          logger.verbose('[PING][SUB] Queue ' + q.queue + ' created');
-          ch.bindQueue(q.queue, exSpecs.name, '');
-          logger.verbose('[PING][SUB] Queue successfully bound to ' + exSpecs.name);
-
-          ch.consume(q.queue, async function(msg) {
-            try {
-              let obj = JSON.parse(msg.content.toString());
-
-              self.quorumService.updatePing(obj.npm);
-            } catch (e) {
-              logger.error('[PING][SUB] Receiving non-json: ' + msg.content.toString());
-            }
-          }, {noAck: true});
-        });
-      });
-    });
-  }
-
-  startPublisher(urlString, exSpecs, qSpecs) {
-    let self = this;
-    amqp.connect(urlString, function(err, conn) {
-      if (err) logger.error('[PING][PUB] Connect failed', err);
-      conn.createChannel(function(err, ch) {
-        if (err) logger.error('[PING][PUB] Create channel failed', err);
-
-        ch.assertExchange(exSpecs.name, exSpecs.type, exSpecs.opts);
-        logger.verbose('[PING][PUB] Exchange ' + exSpecs.name + ' created');
-        logger.verbose('[PING][PUB] Set ping every ' + PING_MILLIS + ' millis');
-        setInterval(function() {
-          var appId = process.env.APP_ID;
-          ch.publish(exSpecs.name, '', self.makeBuffer({
-            'action': 'ping',
-            'npm': process.env.APP_ID,
-            'ts': self.getTimestamp(new Date())
-          }));
-          logger.debug('[PING][PUB] Ping');
-        }, PING_MILLIS);
-      });
-    });
   }
 }
 module.exports = InfraQueueController;
