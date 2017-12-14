@@ -46,32 +46,32 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log('[CONN] Connecting');
+//console.log('[CONN] Connecting');
 amqp.connect('amqp://localhost:5672', function(err, conn) {
   if (err) {
     console.log('[CONN] Fail');
     return console.log(err);
   } else {
-    console.log('[CONN] Connected');
+    //console.log('[CONN] Connected');
   }
 
-  console.log('[CHAN] Create channel');
+  //console.log('[CHAN] Create channel');
   conn.createChannel(function(err, ch) {
     if (err) {
       console.log('[CHAN] Fail');
       return console.log(err);
     }
-    console.log('[CHAN] Created');
+    //console.log('[CHAN] Created');
 
     var ex = exchangeName;
 
-    console.log('[EXCH] Checking ' + ex);
+    //console.log('[EXCH] Checking ' + ex);
     ch.assertExchange(ex, 'direct', {durable: true});
 
     /* Construct queue to handle response */
-    console.log('[BIND] Generate queue with randomly generated name');
+    //console.log('[BIND] Generate queue with randomly generated name');
     ch.assertQueue('', {exclusive: true}, function(err, q) {
-      console.log('[BIND] ' + q.queue + ' binded to ' + ex + ':RESP_' + o.sender_id);
+      //console.log('[BIND] ' + q.queue + ' binded to ' + ex + ':RESP_' + o.sender_id);
       ch.bindQueue(q.queue, ex, 'RESP_' + o.sender_id);
       ch.consume(q.queue, function(msg) {
         console.log('[SUBS] response: ' + msg.content.toString());
